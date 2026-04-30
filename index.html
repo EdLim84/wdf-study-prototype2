@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WDF — Now Assist · Concept B</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#00d4b4;--teal-dk:#009982;
+  --blue:#2563eb;--green:#16a34a;--amber:#d97706;--red:#dc2626;
+  --muted:#9ca3af;--muted2:#6b7280;
+  --text:#111827;--text2:#374151;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --surface:#fff;--surface2:#f7f8fa;--surface3:#eef0f3;
+  --nav:#1a2332;
+  --shadow:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 20px 60px rgba(80,120,150,.2),0 4px 16px rgba(80,120,150,.1);
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+  --r:8px;
+}
+html,body{height:100%;margin:0;font-family:var(--sans);color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* ── BACKGROUND ── */
+body{background:linear-gradient(155deg,#d4e4f0 0%,#bdd0e2 45%,#a8c0d6 100%)}
+body::before,body::after{content:'';position:fixed;border-radius:50% 50% 0 0;pointer-events:none;z-index:0}
+body::before{width:130%;height:55%;bottom:-15%;left:-15%;background:linear-gradient(180deg,rgba(160,200,225,.55),rgba(130,180,210,.7))}
+body::after{width:85%;height:42%;bottom:-8%;right:-8%;background:linear-gradient(180deg,rgba(140,185,215,.35),rgba(110,165,200,.5))}
+
+/* ── INTRO ── */
+#intro{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.ic{background:rgba(255,255,255,.92);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.95);border-radius:20px;box-shadow:var(--shadow-lg);max-width:460px;width:100%;overflow:hidden}
+.ic-hdr{background:linear-gradient(135deg,#1a2332,#0f3d35);padding:22px 26px 16px}
+.ic-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--teal-dk),var(--teal));display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:800;margin-bottom:9px}
+.ic-title{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:2px}
+.ic-sub{font-size:12px;color:rgba(255,255,255,.45)}
+.ic-body{padding:18px 26px;display:flex;flex-direction:column;gap:12px}
+.ic-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-bottom:4px}
+.ic-box{border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.6}
+.ic-teal{background:rgba(0,153,130,.06);border:1px solid rgba(0,153,130,.2);color:var(--text2)}
+.ic-amber{background:#fffbeb;border:1px solid #fde68a;color:#78350f}
+.ic-rule{display:flex;gap:7px;font-size:12px;color:var(--text2);line-height:1.5}
+.ic-num{color:var(--teal-dk);font-weight:700;flex-shrink:0}
+.ic-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--teal-dk),var(--teal));color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;font-family:var(--sans);cursor:pointer}
+.ic-note{font-size:11px;color:var(--muted);text-align:center}
+
+/* ── OVERLAY CONTAINER ── */
+#overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:5vh 5vw}
+
+/* ── MODAL SHELL ── */
+#shell{
+  width:100%;height:100%;
+  display:flex;border-radius:16px;overflow:hidden;
+  box-shadow:var(--shadow-lg);
+}
+
+/* ── CHAT PANEL ── */
+#chat{
+  display:flex;flex-direction:column;
+  width:100%;
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+  flex-shrink:0;
+  border-right:1px solid rgba(0,0,0,.06);
+  position:relative;z-index:2;
+}
+#shell.split #chat{width:30%}
+
+/* Chat header */
+#chat-hdr{padding:13px 16px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(255,255,255,.5)}
+.ch-logo{display:flex;align-items:center;gap:7px}
+.ch-mark{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--teal-dk),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:800}
+.ch-name{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.ch-reset{width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.06);color:var(--muted2);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.ch-reset:hover{background:rgba(0,0,0,.11)}
+
+/* Thread */
+#thread-wrap{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:0 16px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.1) transparent}
+#thread-wrap::-webkit-scrollbar{width:3px}
+#thread-wrap::-webkit-scrollbar-thumb{background:rgba(0,0,0,.1);border-radius:2px}
+#thread{width:100%;max-width:520px;display:flex;flex-direction:column;gap:14px;padding:16px 0 10px;transition:max-width .4s cubic-bezier(.4,0,.2,1)}
+#shell.split #thread{max-width:100%}
+
+/* Messages */
+.msg-ai{display:flex;flex-direction:column;gap:6px;align-items:flex-start;animation:in .18s ease}
+.ai-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bbl-ai{font-size:13px;color:var(--text2);line-height:1.65;flex:1}
+.bbl-ai strong{color:var(--text);font-weight:600}
+.bbl-ai .cd{color:var(--blue);font-family:var(--mono);font-size:11px;background:#eff6ff;padding:1px 5px;border-radius:4px}
+.msg-user{display:flex;justify-content:flex-end;animation:in .18s ease}
+.bbl-user{background:#ddeeff;border:none;border-radius:14px 14px 4px 14px;padding:9px 13px;font-size:13px;color:#1f2937;line-height:1.45;max-width:88%}
+.sys-note{font-size:11px;color:var(--muted2);text-align:center;font-style:italic;padding:2px 0}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Typing dots */
+.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--muted2);animation:blink .9s ease infinite;margin-right:3px}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* Stream cursor */
+.cur{display:inline-block;width:2px;height:13px;background:var(--teal-dk);border-radius:1px;margin-left:1px;vertical-align:middle;animation:cur .7s ease infinite}
+@keyframes cur{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Inline card */
+.icard{background:#fff;border:1px solid var(--border);border-radius:11px;padding:12px 14px;box-shadow:var(--shadow);animation:in .22s ease}
+.icard-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.icard-meta{font-size:11px;color:var(--muted2);margin-bottom:7px;line-height:1.5}
+.icard-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.itag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.itag-green{background:#dcfce7;color:#15803d}
+.itag-amber{background:#fef3c7;color:#92400e}
+.itag-blue{background:#eff6ff;color:#1d4ed8}
+.prev-btn{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--teal-dk);background:rgba(0,153,130,.07);border:1px solid rgba(0,153,130,.2);border-radius:6px;padding:5px 11px;cursor:pointer;font-family:var(--sans)}
+.prev-btn:hover{background:rgba(0,153,130,.13)}
+
+/* Input */
+#inp-area{padding:10px 18px 16px;flex-shrink:0;border-top:none;display:flex;justify-content:center}
+#inp-inner{width:100%;max-width:520px;transition:max-width .4s cubic-bezier(.4,0,.2,1)}
+#shell.split #inp-inner{max-width:100%}
+#inp-bar{background:#fff;border:1px solid rgba(200,210,220,.6);border-radius:40px;display:flex;align-items:center;padding:5px 5px 5px 18px;gap:8px;box-shadow:0 4px 18px rgba(140,165,185,.18),0 1px 4px rgba(140,165,185,.12)}
+#na-inp{flex:1;border:none;outline:none;resize:none;font-size:13.5px;font-family:var(--sans);color:#374151;background:transparent;max-height:96px;line-height:1.45;padding:0;display:block}
+#na-inp::placeholder{color:var(--muted)}
+#send{width:40px;height:40px;border-radius:50%;border:none;flex-shrink:0;background:#d0dff0;color:#4a6880;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 1px 3px rgba(100,140,180,.2)}
+#send:hover{background:#bdd0e8;}
+#send.stop{background:#d0dff0;color:#4a6880;}
+#send.stop:hover{background:#bdd0e8;}
+.disc{font-size:10px;color:var(--muted);text-align:center;margin-top:5px}
+
+/* ── PREVIEW PANEL ── */
+#preview{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff;
+  opacity:0;transform:translateX(16px);
+  transition:opacity .35s ease .05s,transform .35s ease .05s;
+  pointer-events:none;
+}
+#shell.split #preview{opacity:1;transform:translateX(0);pointer-events:all}
+
+/* Preview header */
+#prev-hdr{padding:13px 20px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.ph-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px}
+.ph-title{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.02em;line-height:1.3}
+.ph-sub{font-size:11.5px;color:var(--muted2);margin-top:1px}
+.ph-right{display:flex;align-items:center;gap:7px;flex-shrink:0;margin-left:12px}
+.ph-status{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.st-progress{background:#fef3c7;color:#92400e}
+.st-ready{background:#dcfce7;color:#15803d}
+.ph-close{width:24px;height:24px;border-radius:50%;border:none;background:rgba(0,0,0,.06);color:var(--muted2);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.ph-close:hover{background:rgba(0,0,0,.11)}
+
+/* Phase label — replaces tabs */
+#phase-bar{display:flex;align-items:center;gap:8px;padding:8px 0 0;min-height:32px}
+.phase-label{font-size:12px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.phase-back{font-size:11.5px;color:var(--teal-dk);cursor:pointer;display:none;align-items:center;gap:3px;font-weight:500;background:none;border:none;font-family:var(--sans);padding:0}
+.phase-back:hover{opacity:.75}
+.phase-back.show{display:inline-flex}
+.phase-sep{font-size:11px;color:var(--muted2)}
+/* Panel content fade transition */
+#prev-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:20px;scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.1) transparent}
+#prev-body::-webkit-scrollbar{width:4px}
+#prev-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.panel-fade{animation:panelIn .25s ease}
+@keyframes panelIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Preview footer */
+#prev-foot{border-top:1px solid var(--border);padding:10px 20px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.pf-status{font-size:12px;color:var(--green);font-weight:500}
+.pf-actions{display:flex;gap:7px}
+.pf-btn{padding:7px 15px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans);border:none;transition:opacity .1s}
+.pf-btn:hover{opacity:.85}
+.pf-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.pf-primary{background:var(--nav);color:#fff}
+
+/* ── PREVIEW CONTENT STYLES ── */
+.p-section-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);margin-bottom:9px;padding-left:9px;border-left:3px solid var(--teal-dk)}
+.p-prose{font-size:13px;color:var(--text2);line-height:1.7}
+.p-kv{display:flex;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px;gap:10px}
+.p-kv:last-child{border-bottom:none}
+.p-k{color:var(--muted2);min-width:110px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding-top:1px;flex-shrink:0}
+.p-v{color:var(--text2)}
+.p-metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.p-metric{border-radius:9px;padding:12px 14px}
+.p-metric-val{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px}
+.p-metric-lbl{font-size:11px;font-weight:500;opacity:.8}
+
+/* Source cards in preview */
+.p-src{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:flex;align-items:flex-start;gap:9px;border-left:3px solid var(--border);box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s}
+.p-src:hover{border-left-color:var(--teal-dk)}
+.p-src.high{border-left-color:#22c55e}
+.p-src.medium{border-left-color:#f59e0b}
+.p-src-name{font-size:12.5px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.p-src-desc{font-size:11.5px;color:var(--muted2);line-height:1.5;margin-bottom:5px}
+.p-src-tags{display:flex;gap:4px;flex-wrap:wrap}
+.p-src-tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface3);color:var(--muted2);font-weight:500}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;display:inline-flex;align-items:center}
+.b-green{background:#dcfce7;color:#15803d}
+.b-amber{background:#fef3c7;color:#92400e}
+.b-blue{background:#eff6ff;color:#1d4ed8}
+.b-red{background:#fee2e2;color:#b91c1c}
+
+/* Schema table */
+.p-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.p-tbl th{text-align:left;padding:6px 9px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);border-bottom:1px solid var(--border);background:var(--surface2)}
+.p-tbl td{padding:7px 9px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+.p-tbl tr:last-child td{border-bottom:none}
+.p-tbl tr.joined td{background:#f0fdf4}
+.p-tbl tr.flagged td{background:#fff5f5}
+
+/* Join diagram */
+.join-diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow)}
+.jt-wrap{display:flex;align-items:center;gap:0;overflow-x:auto}
+.jt-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 11px;min-width:110px}
+.jt-name{font-size:10.5px;font-weight:700;color:var(--text);margin-bottom:3px;font-family:var(--mono)}
+.jt-key{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--blue);background:#eff6ff;padding:2px 5px;border-radius:3px;font-family:var(--mono)}
+.jt-arrow{padding:0 7px;display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+.jt-type{font-size:9px;font-weight:700;color:var(--teal-dk);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+
+/* Schema — new UI */
+.schema-alert{background:#fff5f5;border:1px solid #fecaca;border-radius:10px;padding:12px 15px;display:flex;align-items:flex-start;gap:10px;margin-bottom:0}
+.schema-alert-ico{font-size:14px;flex-shrink:0;margin-top:1px}
+.schema-alert-body{flex:1}
+.schema-alert-title{font-size:13px;font-weight:600;color:#b91c1c;margin-bottom:3px}
+.schema-alert-desc{font-size:12px;color:#b91c1c;line-height:1.5}
+.schema-alert-desc code{font-family:var(--mono);background:rgba(185,28,28,.08);padding:1px 5px;border-radius:3px;font-size:11px}
+.schema-alert-link{color:#b91c1c;font-weight:600;text-decoration:none;white-space:nowrap;font-size:12px;cursor:pointer}
+.schema-alert-link:hover{text-decoration:underline}
+.topo-section{margin-top:15px;margin-bottom:0}
+.topo-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-bottom:8px}
+.topo-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:0;overflow-x:auto}
+.topo-src{min-width:130px}
+.topo-src-name{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.topo-src-key{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:10.5px;color:var(--blue);background:#eff6ff;border:1px solid #bfdbfe;padding:2px 7px;border-radius:4px;margin-bottom:4px}
+.topo-src-key.amber{color:#92400e;background:#fef3c7;border-color:#fde68a}
+.topo-src-role{font-size:10px;color:var(--muted2)}
+.topo-arrow{padding:0 12px;display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0}
+.topo-join-lbl{font-size:9px;font-weight:700;color:var(--teal-dk);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.topo-arrow-line{display:flex;align-items:center;gap:0}
+.topo-arrow-line::before{content:'';display:block;width:40px;height:1px;background:var(--border2)}
+.topo-arrow-line::after{content:'›';font-size:14px;color:var(--muted2);margin-left:-2px}
+.topo-join-key{font-size:9.5px;color:var(--muted2);white-space:nowrap}
+.schema-section{margin-top:15px;margin-bottom:0}
+.schema-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-bottom:8px}
+.schema-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0}
+.schema-tab{padding:8px 14px;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans)}
+.schema-tab:hover{color:var(--text2)}
+.schema-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:600}
+.schema-rows{display:flex;flex-direction:column}
+.schema-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.schema-row:last-child{border-bottom:none}
+.schema-row:hover{background:var(--surface2)}
+.schema-row.flagged-red{background:#fff5f5}
+.schema-row.flagged-red:hover{background:#fee2e2}
+.schema-row.flagged-amber{background:#fffbeb}
+.schema-row.flagged-amber:hover{background:#fef3c7}
+.sr-label{font-size:13.5px;font-weight:600;color:var(--text);min-width:130px;flex-shrink:0}
+.sr-label.red{color:#b91c1c}
+.sr-label.amber{color:#92400e}
+.sr-src{font-family:var(--mono);font-size:11px;color:var(--muted2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-tx{font-size:12px;font-weight:500;flex-shrink:0;min-width:140px;text-align:left}
+.sr-tx.red{color:#b91c1c}
+.sr-tx.amber{color:#92400e}
+.sr-tx.blue{color:var(--blue)}
+.sr-tx.green{color:#15803d}
+.sr-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.sr-badge.bizlogic{background:#eff6ff;color:#1d4ed8}
+.sr-badge.syn{background:#f0fdf4;color:#15803d}
+.sr-badge.res-auto{background:#dcfce7;color:#15803d}
+.sr-badge.res-review{background:#fef3c7;color:#92400e}
+.sr-badge.res-input{background:#fee2e2;color:#b91c1c}
+.schema-col-hdr{display:flex;align-items:center;gap:10px;padding:7px 14px;background:var(--surface2);border-bottom:1px solid var(--border);border-top:1px solid var(--border)}
+.sch{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted2)}
+.sch-field{min-width:130px;flex-shrink:0}
+.sch-src{flex:1;min-width:0}
+.sch-tx{flex-shrink:0;min-width:140px}
+.sch-layer{flex-shrink:0;min-width:90px}
+.sch-res{flex-shrink:0;min-width:90px}
+.sch-chev{width:13px;margin-left:auto;flex-shrink:0}
+.sr-chevron{font-size:13px;color:var(--muted);flex-shrink:0;margin-left:auto}
+.schema-detail-panel{border-top:1px solid var(--border);background:var(--surface2);padding:14px 16px;font-size:12.5px;color:var(--text2);line-height:1.65;animation:in .15s ease}
+
+.v-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 13px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+
+/* Doc fields */
+.doc-lbl{font-size:10.5px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.doc-field{width:100%;border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12.5px;font-family:var(--sans);color:var(--text2);resize:vertical;line-height:1.6;outline:none;background:var(--surface);min-height:60px}
+.doc-field:focus{border-color:var(--teal-dk)}
+
+/* Flag banner */
+.flag-banner{background:#fff5f5;border:1px solid #fecaca;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#b91c1c;font-weight:500}
+.ok-banner{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#15803d;font-weight:500}
+.warn-banner{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#92400e;font-weight:500}
+
+/* Source detail overlay */
+#src-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
+.src-modal{background:#fff;border-radius:13px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:660px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden}
+.src-modal-hdr{padding:15px 19px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;background:var(--surface2)}
+.src-modal-body{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:13px}
+.src-col-row{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.src-col-type{font-size:10.5px;color:var(--muted2);background:var(--surface3);padding:2px 7px;border-radius:4px;border:1px solid var(--border);min-width:75px}
+.src-col-chip{font-size:10.5px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);color:var(--text2);background:var(--surface)}
+
+/* Empty preview state */
+.prev-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--muted2);text-align:center;padding:40px}
+.prev-empty-icon{font-size:28px;opacity:.35}
+.prev-empty-title{font-size:13px;font-weight:600;color:var(--muted2)}
+.prev-empty-sub{font-size:12px;color:var(--muted);line-height:1.6;max-width:220px}
+
+/* ── SCREENSHOT-MATCH VISUAL OVERHAUL ── */
+#chat { background: rgba(255,255,255,.97); }
+#chat-hdr { background:#fff; border-bottom:1px solid #eaecf0; padding:14px 18px 12px; }
+.ch-name { font-size:14px; font-weight:700; letter-spacing:-.01em; }
+.ch-mark { background:linear-gradient(135deg,#00c9a7,#009982); border-radius:8px; }
+#thread-wrap { padding:0 18px; background:#fff; }
+#thread { gap:12px; padding:18px 0 14px; }
+.bbl-ai { font-size:13.5px; line-height:1.65; color:#1f2937; font-weight:400; width:100%; }
+.bbl-ai strong { color:#111827; font-weight:600; }
+.bbl-user { background:#e0eeff; border:none; border-radius:16px 16px 4px 16px; font-size:13.5px; color:#1f2937; line-height:1.45; }
+
+#inp-bar:focus-within { border-color:rgba(160,185,210,.7); box-shadow:0 4px 18px rgba(140,165,185,.22),0 1px 4px rgba(140,165,185,.15); }
+
+#preview { background:#f8f9fb; }
+#prev-hdr { background:#fff; border-bottom:1px solid #e9ecef; padding:16px 22px 0; }
+.ph-title { font-size:17px; font-weight:700; letter-spacing:-.025em; color:#111827; }
+.ph-sub { font-size:12px; color:#9ca3af; margin-top:2px; }
+.ph-status { font-size:11px; font-weight:600; padding:4px 11px; border-radius:20px; letter-spacing:.01em; }
+.st-progress { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
+.st-ready { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+.ph-close { background:#f3f4f6; border-radius:50%; color:#6b7280; font-size:13px; }
+#phase-bar { padding:10px 0 4px; }
+.phase-label { font-size:12.5px; font-weight:600; color:#374151; }
+#prev-body { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:0; scrollbar-width:thin; scrollbar-color:rgba(0,0,0,.1) transparent; }
+#prev-body::-webkit-scrollbar{width:4px}
+#prev-body::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+.metric-tile-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:0; }
+.metric-tile { border-radius:12px; padding:14px 16px 12px; min-height:72px; }
+.metric-tile-blue  { background:#eff6ff; border:1px solid #dbeafe; }
+.metric-tile-green { background:#f0fdf4; border:1px solid #bbf7d0; }
+.metric-tile-purple{ background:#f5f3ff; border:1px solid #e9d5ff; }
+.metric-tile-gray  { background:#f9fafb; border:1px solid #e5e7eb; }
+.metric-tile-val { font-size:26px; font-weight:700; letter-spacing:-.03em; line-height:1; margin-bottom:4px; }
+.metric-tile-blue  .metric-tile-val { color:#2563eb; }
+.metric-tile-green .metric-tile-val { color:#16a34a; }
+.metric-tile-purple .metric-tile-val { color:#7c3aed; }
+.metric-tile-gray  .metric-tile-val { color:#374151; }
+.metric-tile-label { font-size:11.5px; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
+.metric-tile-blue  .metric-tile-label { color:#1d4ed8; }
+.metric-tile-green .metric-tile-label { color:#15803d; }
+.metric-tile-purple .metric-tile-label { color:#6d28d9; }
+.metric-tile-gray  .metric-tile-label { color:#4b5563; }
+.metric-tile-sub { font-size:10.5px; color:#9ca3af; margin-top:2px; line-height:1.4; }
+.panel-section { background:#fff; border:1px solid #e9ecef; border-radius:12px; overflow:hidden; margin-top:14px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+.panel-section-hdr { padding:12px 18px 10px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; }
+.panel-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; }
+.panel-section-body { padding:14px 18px; }
+.p-src { background:#fff; border:1px solid #e9ecef; border-left:3px solid #22c55e; border-radius:11px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,.04); transition:box-shadow .15s,border-color .15s; }
+.p-src:hover { box-shadow:0 3px 10px rgba(0,0,0,.09); }
+.p-src-name { font-size:13px; font-weight:600; letter-spacing:-.01em; }
+.p-src-desc { font-size:11.5px; color:#6b7280; line-height:1.55; }
+.p-src-tag { font-size:10px; padding:2px 8px; border-radius:20px; background:#f3f4f6; color:#6b7280; font-weight:500; }
+.v-card { background:#fff; border:1px solid #e9ecef; border-radius:10px; padding:11px 14px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+.ok-banner { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#15803d; font-weight:500; }
+.warn-banner { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#92400e; font-weight:500; }
+.flag-banner { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#b91c1c; font-weight:500; }
+.p-kv { padding:8px 0; border-bottom:1px solid #f3f4f6; font-size:13px; gap:10px; }
+.p-kv:last-child { border-bottom:none; }
+.p-k { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:#9ca3af; min-width:120px; flex-shrink:0; padding-top:1px; }
+.p-v { color:#1f2937; }
+.schema-alert { background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:13px 16px; }
+.schema-alert-title { font-size:13.5px; font-weight:600; color:#b91c1c; margin-bottom:3px; }
+.schema-alert-desc { font-size:12.5px; color:#b91c1c; line-height:1.55; }
+.topo-box { background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:16px 18px; }
+.topo-label { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:10px; }
+.schema-col-hdr { background:#f9fafb; border-top:1px solid #e9ecef; border-bottom:1px solid #e9ecef; }
+.schema-rows { background:#fff; border:1px solid #e9ecef; border-top:none; border-radius:0 0 10px 10px; }
+.schema-row { border-bottom:1px solid #f3f4f6; }
+.schema-row:hover { background:#f9fafb; }
+.schema-tab.active { border-bottom-color:#009982; color:#009982; }
+.schema-detail-panel { background:#f9fafb; border-top:1px solid #e9ecef; }
+#prev-foot { background:#fff; border-top:1px solid #e9ecef; padding:12px 22px; }
+.pf-btn { border-radius:9px; padding:8px 18px; font-size:13px; }
+.pf-ghost { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; }
+.pf-primary { background:linear-gradient(135deg,#111827,#1f2937); color:#fff; font-weight:700; }
+.icard { background:#fff; border:1px solid #e9ecef; border-radius:14px; padding:13px 16px; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.icard-title { font-size:13px; font-weight:700; color:#111827; letter-spacing:-.01em; }
+.icard-meta { font-size:11.5px; color:#9ca3af; margin-top:2px; }
+.itag { font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:20px; }
+.itag-green { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+.itag-amber { background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+.itag-blue  { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+.prev-btn { background:linear-gradient(135deg,#009982,#00c9a7); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:600; padding:6px 13px; }
+.prev-btn:hover { opacity:.88; }
+.p-section-title { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#9ca3af; margin-bottom:10px; padding-left:0; border-left:none; }
+.p-prose { font-size:13.5px; color:#374151; line-height:1.75; }
+.p-tbl th { background:#f9fafb; color:#9ca3af; font-size:10px; font-weight:700; letter-spacing:.06em; }
+.doc-field { border:1.5px solid #e5e7eb; border-radius:8px; font-size:13px; background:#f9fafb; }
+.doc-field:focus { border-color:#009982; background:#fff; }
+.doc-lbl { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#9ca3af; }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<!-- MAIN -->
+<div id="overlay">
+  <div id="shell">
+
+    <!-- CHAT -->
+    <div id="chat">
+      <div id="chat-hdr">
+        <div class="ch-logo">
+          <div class="ch-mark">✦</div>
+          <span class="ch-name">Now Assist</span>
+        </div>
+        <button class="ch-reset" onclick="doReset()" title="Reset session" style="font-size:14px;font-weight:400;color:#6b7280">✕</button>
+      </div>
+      <div id="thread-wrap"><div id="thread"></div></div>
+      <div id="inp-area">
+        <div id="inp-inner">
+          <div id="inp-bar">
+            <span style="font-size:16px;color:#9ca3af;flex-shrink:0;line-height:1.65;cursor:pointer;user-select:none">+</span>
+            <textarea id="na-inp" rows="1" placeholder="Ask me anything..."
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doSend();}"
+              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'"></textarea>
+            <button id="send" onclick="doSend()">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="#4a6880" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+          </div>
+          <div class="disc" style="color:#8a9ab0;font-size:11.5px;margin-top:7px;font-weight:400">Some answers generated by AI. Be sure to check for accuracy.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIEW PANEL -->
+    <div id="preview">
+      <div id="prev-hdr">
+        <div class="ph-row">
+          <div style="flex:1;min-width:0">
+            <div class="ph-title" id="ph-title">Shipment billing reconciliation</div>
+            <div class="ph-sub">Data Interface · Workflow Data Fabric</div>
+          </div>
+          <div class="ph-right">
+            <span class="ph-status st-progress" id="ph-status">● In progress</span>
+            <button class="ph-close" onclick="closePreview()">✕</button>
+          </div>
+        </div>
+        <div id="phase-bar">
+          <button class="phase-back" id="phase-back" onclick="goBackPhase()">← Back</button>
+          <span class="phase-sep" id="phase-sep" style="display:none">·</span>
+          <span class="phase-label" id="phase-label"></span>
+        </div>
+      </div>
+      <div id="prev-body"></div>
+      <div id="prev-foot">
+        <div class="pf-status" id="pf-status"></div>
+        <div class="pf-actions">
+          <button class="pf-btn pf-primary" id="draft-btn" onclick="onDraft()" disabled style="opacity:.4;cursor:not-allowed">Create draft</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SOURCE DETAIL -->
+<div id="src-overlay" onclick="if(event.target===this)closeSrc()"></div>
+
+<script>
+// -----------------------------------------
+// ENTERPRISE CATALOG -- 50+ sources across 6 systems
+// Selected sources (AI recommended), Rejected sources (AI filtered out)
+// -----------------------------------------
+const SOURCES = {
+  // -- SELECTED: AI recommends these 3 --
+  orders_snowflake:{
+    name:'orders_snowflake', system:'Snowflake', certified:true, selected:true,
+    confidence:'high', confReason:'Certified, 12,450 rows sampled, order_id join key confirmed at 98.7% match rate. Primary fulfillment source.',
+    desc:'Records all order fulfillment events including shipment timestamps, delivery dates, carrier assignments, and order lifecycle status.',
+    hierarchy:'Snowflake DB > Logistics Schema', originalName:'CUST_ORDS', metaBy:'Snowflake_MCA',
+    owner:'Laura Robinson', steward:'Laura Robinson', lifecycle:'Certified', statusMsg:'Approved by Laura', domain:'Logistics',
+    cols:[{type:'String',fields:['order_id','customer_id','carrier_name','order_status','destination_code']},{type:'Number',fields:['total_amount','package_weight']},{type:'Date',fields:['order_date','delivery_eta','actual_delivery_time']}],
+    related:[{kind:'Schema',name:'customer_details'},{kind:'Table',name:'carrier_routes'}], glossary:['Order','Shipment','Carrier']
+  },
+  billing_transactions:{
+    name:'billing_transactions', system:'Snowflake', certified:true, selected:true,
+    confidence:'high', confReason:'Certified, joins to orders_snowflake on order_id. Invoice records with payment status. Direct answer to "was this shipment billed?"',
+    desc:'Billing events, invoice records, payment status, and reconciliation codes for all order transactions.',
+    hierarchy:'Snowflake DB > Finance Schema', originalName:'BILL_TXN', metaBy:'Snowflake_MCA',
+    owner:'Priya Mehta', steward:'Priya Mehta', lifecycle:'Certified', statusMsg:'Approved by Priya', domain:'Finance',
+    cols:[{type:'String',fields:['order_id','invoice_id','invoice_status','billing_reference_id']},{type:'Number',fields:['amount_billed','tax_amount']},{type:'Date',fields:['invoice_date','payment_due_date']}],
+    related:[{kind:'Table',name:'payment_records'},{kind:'Table',name:'credit_notes'}], glossary:['Invoice','Billing','Revenue']
+  },
+  customer_db:{
+    name:'customer_db', system:'ServiceNow', certified:false, selected:true,
+    confidence:'medium', confReason:'Not yet certified. acct_id → customer_id mapping at medium confidence -- formats look compatible but match rate unverified. Needs manual access request.',
+    desc:'Customer master data including account identifiers, contact details, and account classification.',
+    hierarchy:'ServiceNow > Customer Domain', originalName:'CUST_MASTER', metaBy:'ServiceNow_MCA',
+    owner:'David Kim', steward:'David Kim', lifecycle:'Under Review', statusMsg:'Pending certification', domain:'Customer',
+    cols:[{type:'String',fields:['acct_id','customer_name','customer_segment','region']},{type:'String',fields:['email','phone']},{type:'Date',fields:['account_created_date']}],
+    related:[{kind:'Schema',name:'customer_interactions'}], glossary:['Customer','Account']
+  }
+};
+
+// Full enterprise catalog -- what AI searched through (47 additional results)
+const CATALOG_ALL = [
+  // Snowflake Logistics Schema
+  {name:'orders_snowflake',          system:'Snowflake',    lifecycle:'Certified',    domain:'Logistics', reason_selected:'Primary fulfillment source -- 98.7% join quality on order_id'},
+  {name:'billing_transactions',      system:'Snowflake',    lifecycle:'Certified',    domain:'Finance',   reason_selected:'Direct invoice records -- joins on order_id'},
+  {name:'shipment_events_raw',       system:'Snowflake',    lifecycle:'Deprecated',   domain:'Logistics', reason_rejected:'Deprecated 2022 -- superseded by orders_snowflake. Missing 34% of records post-migration.'},
+  {name:'SHPMT_EVT_LEGACY',          system:'Snowflake',    lifecycle:'Deprecated',   domain:'Logistics', reason_rejected:'Legacy table, deprecated 2021. Schema conflicts with current standard. Do not use.'},
+  {name:'order_fulfillment_staging', system:'Snowflake',    lifecycle:'Uncertified',  domain:'Logistics', reason_rejected:'Staging table -- not for production use. Incomplete records, refreshed hourly from ETL.'},
+  {name:'logistics_summary_weekly',  system:'Snowflake',    lifecycle:'Certified',    domain:'Logistics', reason_rejected:'Weekly aggregate -- wrong granularity. One row per week, not per shipment. Use orders_snowflake for row-level.'},
+  {name:'delivery_events',           system:'Snowflake',    lifecycle:'Under Review', domain:'Logistics', reason_rejected:'Partial duplicate of orders_snowflake (logistics leg only). Missing billing join key. Certification pending.'},
+  {name:'carrier_performance_mtd',   system:'Snowflake',    lifecycle:'Certified',    domain:'Logistics', reason_rejected:'Carrier KPIs, not shipment records. No invoice data. Useful for analysis but not relevant here.'},
+  {name:'returns_and_rma',           system:'Snowflake',    lifecycle:'Certified',    domain:'Logistics', reason_rejected:'Returns and RMA data only -- not forward shipments. Different business process.'},
+  // Snowflake Finance Schema
+  {name:'billing_archive_2020',      system:'Snowflake',    lifecycle:'Restricted',   domain:'Finance',   reason_rejected:'Restricted -- data governance approval required. Historical archive pre-2021 only. Not relevant to current gap.'},
+  {name:'ar_ledger_sap_mirror',      system:'Snowflake',    lifecycle:'Certified',    domain:'Finance',   reason_rejected:'SAP AR mirror -- accounts receivable ledger. Invoice-level not shipment-level. Upstream of billing_transactions.'},
+  {name:'revenue_recognition_gl',    system:'Snowflake',    lifecycle:'Certified',    domain:'Finance',   reason_rejected:'General ledger revenue recognition. Aggregate finance view -- no shipment-level join key.'},
+  {name:'payment_records',           system:'Snowflake',    lifecycle:'Certified',    domain:'Finance',   reason_rejected:'Payment confirmations only -- only exists when invoice was paid. Shipments with no invoice won\'t appear here at all.'},
+  {name:'credit_notes_and_adjustments',system:'Snowflake', lifecycle:'Certified',    domain:'Finance',   reason_rejected:'Credit memos and billing adjustments. Downstream of billing -- not relevant to missing invoice detection.'},
+  // SAP ERP
+  {name:'SAP_VBAK_SALES_ORDERS',     system:'SAP ERP',     lifecycle:'Certified',    domain:'Sales',     reason_rejected:'SAP sales order headers -- upstream of fulfillment. No delivery or invoice status at shipment level.'},
+  {name:'SAP_LIPS_DELIVERY_ITEMS',   system:'SAP ERP',     lifecycle:'Certified',    domain:'Logistics', reason_rejected:'SAP delivery line items -- relevant domain but uses SAP delivery doc numbers, not order_id. Join key mismatch requires custom mapping.'},
+  {name:'SAP_VBRK_BILLING_DOCS',     system:'SAP ERP',     lifecycle:'Certified',    domain:'Finance',   reason_rejected:'SAP billing document headers -- duplicate of billing_transactions (which is a Snowflake mirror of this). Use billing_transactions instead.'},
+  {name:'SAP_BSEG_ACCOUNTING',       system:'SAP ERP',     lifecycle:'Restricted',   domain:'Finance',   reason_rejected:'SAP accounting segments -- restricted, FI team access only. General ledger entries, not shipment records.'},
+  {name:'SAP_LFA1_VENDORS',          system:'SAP ERP',     lifecycle:'Certified',    domain:'Procurement',reason_rejected:'Vendor master data -- wrong domain entirely. This is procurement, not fulfillment or billing.'},
+  {name:'SAP_MARA_MATERIALS',        system:'SAP ERP',     lifecycle:'Certified',    domain:'Inventory', reason_rejected:'Material master -- product catalog data. No shipment or invoice records.'},
+  // Salesforce CRM
+  {name:'sf_opportunities',          system:'Salesforce',  lifecycle:'Certified',    domain:'Sales',     reason_rejected:'CRM opportunity records -- pre-sale data. No fulfillment or invoice status.'},
+  {name:'sf_accounts',               system:'Salesforce',  lifecycle:'Certified',    domain:'Customer',  reason_rejected:'CRM account master -- customer names and segments. Less complete than customer_db for this use case. Possible enrichment source.'},
+  {name:'sf_orders',                 system:'Salesforce',  lifecycle:'Under Review', domain:'Sales',     reason_rejected:'Salesforce order object -- CRM-side order record. Not fulfillment system of record. Certification pending.'},
+  {name:'sf_cases',                  system:'Salesforce',  lifecycle:'Certified',    domain:'Support',   reason_rejected:'Support cases -- wrong domain. No billing or shipment data.'},
+  {name:'sf_contracts',              system:'Salesforce',  lifecycle:'Certified',    domain:'Sales',     reason_rejected:'Contract terms -- upstream of billing. No invoice or shipment status.'},
+  // ServiceNow Native Tables
+  {name:'customer_db',               system:'ServiceNow',  lifecycle:'Under Review', domain:'Customer',  reason_selected:'Customer master for grouping by name and region -- medium confidence, access request needed'},
+  {name:'sn_incident',               system:'ServiceNow',  lifecycle:'Certified',    domain:'ITSM',      reason_rejected:'IT incident records -- wrong domain. No shipment or billing data.'},
+  {name:'sn_sc_request',             system:'ServiceNow',  lifecycle:'Certified',    domain:'ITSM',      reason_rejected:'Service catalog requests -- IT service management, not fulfillment.'},
+  {name:'cmdb_ci_hardware',          system:'ServiceNow',  lifecycle:'Certified',    domain:'ITSM',      reason_rejected:'CMDB hardware assets -- infrastructure data, not relevant.'},
+  {name:'sn_vendor_contracts',       system:'ServiceNow',  lifecycle:'Under Review', domain:'Procurement',reason_rejected:'Vendor contract records -- procurement domain. No shipment or invoice data.'},
+  {name:'sn_task',                   system:'ServiceNow',  lifecycle:'Certified',    domain:'ITSM',      reason_rejected:'Generic task table -- platform data, not business data.'},
+  // Legacy Oracle Billing
+  {name:'ORA_INV_MASTER',            system:'Oracle Legacy',lifecycle:'Deprecated',  domain:'Finance',   reason_rejected:'Legacy Oracle invoice master -- deprecated 2019, migrated to Snowflake. Data pre-2019 only.'},
+  {name:'ORA_SHIP_HDR',              system:'Oracle Legacy',lifecycle:'Deprecated',  domain:'Logistics', reason_rejected:'Legacy Oracle shipment headers -- deprecated. Missing ~12% of records from 2018-2019 migration gap.'},
+  {name:'ORA_AR_OPEN_ITEMS',         system:'Oracle Legacy',lifecycle:'Restricted',  domain:'Finance',   reason_rejected:'Oracle AR open items -- restricted access. Legacy system, data quality issues flagged by finance team.'},
+  {name:'ORA_CUST_MASTER_V2',        system:'Oracle Legacy',lifecycle:'Deprecated',  domain:'Customer',  reason_rejected:'Oracle customer master -- deprecated, superseded by customer_db in ServiceNow.'},
+  // Homegrown MySQL Ops
+  {name:'ops_shipment_tracker',      system:'MySQL Ops',   lifecycle:'Uncertified',  domain:'Logistics', reason_rejected:'Homegrown ops tracker -- no formal data steward, schema undocumented. High data quality risk. Not recommended without stewardship.'},
+  {name:'ops_billing_flags',         system:'MySQL Ops',   lifecycle:'Uncertified',  domain:'Finance',   reason_rejected:'Billing flag table from ops team -- uncertified, no join key documentation. Possible future source but not ready.'},
+  {name:'ops_customer_notes',        system:'MySQL Ops',   lifecycle:'Uncertified',  domain:'Customer',  reason_rejected:'Customer notes and annotations -- unstructured, no schema contract. Cannot join reliably.'},
+  {name:'ops_carrier_dispatch',      system:'MySQL Ops',   lifecycle:'Uncertified',  domain:'Logistics', reason_rejected:'Carrier dispatch logs -- no order_id. Uses internal dispatch_ref number only. Cannot join to billing without custom mapping.'},
+  // Additional Snowflake / Data Warehouse
+  {name:'dw_shipment_fact',          system:'Snowflake',   lifecycle:'Certified',    domain:'Logistics', reason_rejected:'Data warehouse shipment fact table -- dimensional model, not operational. Aggregated at day/carrier grain. Wrong level of detail.'},
+  {name:'dw_invoice_fact',           system:'Snowflake',   lifecycle:'Certified',    domain:'Finance',   reason_rejected:'DW invoice fact -- same issue as above. Aggregate grain. Use billing_transactions for row-level invoice data.'},
+  {name:'product_catalog',           system:'Snowflake',   lifecycle:'Certified',    domain:'Product',   reason_rejected:'Product master -- SKU and item data. No shipment or billing status.'},
+  {name:'warehouse_inventory',       system:'Snowflake',   lifecycle:'Certified',    domain:'Inventory', reason_rejected:'Inventory levels by warehouse -- stock data, not fulfillment or billing.'},
+  {name:'geo_region_mapping',        system:'Snowflake',   lifecycle:'Certified',    domain:'Reference', reason_rejected:'Region and territory reference table -- enrichment only. No shipment or billing data.'},
+  {name:'currency_exchange_rates',   system:'Snowflake',   lifecycle:'Certified',    domain:'Finance',   reason_rejected:'FX rates reference table -- enrichment only. Not a source of shipment or invoice records.'},
+  {name:'tax_jurisdiction_codes',    system:'Snowflake',   lifecycle:'Certified',    domain:'Finance',   reason_rejected:'Tax codes reference table -- used in billing calculations. Not relevant to missing invoice detection.'},
+  {name:'shipping_zones',            system:'Snowflake',   lifecycle:'Certified',    domain:'Logistics', reason_rejected:'Shipping zone definitions -- reference data. No transactional records.'},
+  // External / Third Party
+  {name:'fedex_api_events',          system:'External API',lifecycle:'Uncertified',  domain:'Logistics', reason_rejected:'FedEx carrier event feed -- real-time delivery status. No financial data, no invoice join key. Useful for delivery confirmation but not for billing reconciliation.'},
+  {name:'ups_delivery_confirmations',system:'External API',lifecycle:'Uncertified',  domain:'Logistics', reason_rejected:'UPS delivery confirmations -- same limitation as FedEx feed. Carrier delivery data only.'},
+  {name:'stripe_payment_events',     system:'External API',lifecycle:'Under Review', domain:'Finance',   reason_rejected:'Stripe payment events -- online payment channel only. Does not cover enterprise B2B invoicing tracked in billing_transactions.'},
+];
+
+const REJECTED_SOURCES = CATALOG_ALL.filter(s => !s.reason_selected);
+
+// -----------------------------------------
+// STATE
+// -----------------------------------------
+const API = 'https://api.anthropic.com/v1/messages';
+const API_KEY = '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';
+const MDL = 'claude-sonnet-4-20250514';
+
+let msgs=[], busy=false, step=1;
+let splitOpen=false;
+let cardShown={};
+
+// ── SCHEMA STATE -- mutated as user resolves fields ──
+var verifyState = { customerDbRetried: false };
+var schemaState = {
+  invoiceResolved: false,  // true once user gives invoice_status answer
+  invoiceTx: 'Safe assumption applied',  // what was decided
+  customerResolved: false  // true once verification confirms acct_id match
+};
+
+// -----------------------------------------
+// STEP SYSTEM PROMPTS
+// Each step's AI persona and exact advance signal
+// -----------------------------------------
+const STEPS = {
+  1:{
+    sys:`You are Now Assist in ServiceNow Workflow Data Fabric. A data steward has a business problem. Your job is to understand it deeply through natural conversation before proposing anything.
+
+HOW TO APPROACH THIS:
+- Start with one open question to understand their problem
+- Ask natural follow-up questions one at a time to fill in gaps — don't rush to propose
+- The kinds of things worth understanding before you propose: where the data likely lives (which systems), who needs to act on the results, whether this is a one-time lookup or something they'll query ongoing, what "done" looks like for them
+- You don't need to ask all of these — use judgment. If their first answer is rich enough, move on. If it's vague, dig in.
+- Never ask more than one question at a time
+- Never use technical terms (Data Interface, Data Product, join, schema) until after they confirm the plan
+- Keep responses short and conversational — this should feel like talking to a knowledgeable colleague, not filling out a form
+
+WHEN YOU HAVE ENOUGH:
+Propose what to build in this exact format — use the bold labels exactly as shown:
+
+**Goal:** [their problem in plain language]
+**I recommend:** A Data Interface -- [reason: combines multiple sources into one governed, queryable view. A Data Product would be next if this needs org-wide publishing.]
+**App scope:** [ServiceNow app this fits under and why, e.g. Field Service Management]
+**How it works:** [plain language, e.g. "match shipment records against invoice records so anything without an invoice shows up"]
+**Name:** [2-3 words max, e.g. "Billing Reconciliation"]
+
+After the plan: "Does this look right? I can adjust anything before we move on."
+When user confirms, say EXACTLY: "Perfect -- searching the catalog for sources now."
+
+OFF-PATH if they ask what this tool does: "I help you build a data view starting from a business problem -- you don't need to know where the data lives. What are you trying to figure out?"
+OFF-PATH if they want to skip straight to building: "Happy to -- just want to make sure I build the right thing. [One focused question about what they need.]"`,
+    advance: /searching the catalog for sources now/i
+  },
+  2:{
+    sys:`You are Now Assist. You have searched the enterprise data catalog and found 47 results across 6 systems matching the user's business problem. You are now presenting your curated recommendation.
+
+Present this as an enterprise AI would -- show the full search scope, then explain your selection criteria, then present the 3 recommended sources with explicit reasoning, then acknowledge what you filtered out and why.
+
+Say something like:
+
+"I searched the catalog and found 47 tables across 6 systems matching your problem -- Snowflake, SAP ERP, Salesforce, ServiceNow, Oracle Legacy, and a homegrown MySQL ops system.
+
+Most of those aren't the right fit. I filtered out deprecated tables, aggregated views at the wrong grain, CRM data that's upstream of fulfillment, restricted sources requiring governance approval, and uncertified homegrown systems with no schema contract.
+
+Here are the 3 I'm recommending, and why:
+
+**orders_snowflake** -- High confidence. Certified, Snowflake Logistics schema. 12,450 rows sampled. This is your shipment system of record -- every fulfilled order is here. order_id is the primary join key, confirmed at 98.7% match rate with billing. Owner: Laura Robinson.
+
+**billing_transactions** -- High confidence. Certified, Snowflake Finance schema. Invoice records with payment status. Joins to orders_snowflake on order_id -- shipments with no matching invoice row are exactly the revenue gap you described. Owner: Priya Mehta.
+
+**customer_db** -- Medium confidence. ServiceNow, Under Review (not yet certified). Customer master for grouping results by name and region. The join key mapping -- acct_id to customer_id -- looks compatible but I haven't verified the match rate. This one also needs a manual admin access request before it can be queried. Owner: David Kim.
+
+I excluded 44 other tables. The most notable ones: SAP_LIPS_DELIVERY_ITEMS has the right domain but uses SAP delivery doc numbers with no order_id, so it can't join without custom mapping. shipment_events_raw is deprecated and missing 34% of post-migration records. billing_archive_2020 requires data governance approval. ops_shipment_tracker is uncertified with no schema documentation.
+
+You can see all filtered results and my reasoning in the panel.
+
+Do these 3 look right? Is there a source you know about that I should consider adding?"
+
+Answer follow-up questions naturally. If user asks about a specific rejected source, explain clearly why it was filtered.
+If asked about a source not in your known list, say you don't have it in the 47 you searched and ask which system it's in.
+Never invent source details, row counts, or join quality numbers beyond what's specified above.
+When user confirms, say EXACTLY: "Moving to schema mapping now."`,
+    advance: /moving to schema mapping now/i
+  },
+  3:{
+    sys:`You are Now Assist. You are in Schema Mapping and Transform Planning. This is an enterprise environment with sources from multiple systems.
+
+IMPORTANT: Before asking about invoice_status, first explain the join so the user understands what they're looking at:
+
+"I've mapped 8 fields across the three sources and built the transform plan. Here's how it breaks down:
+
+The three sources connect on order_id using a left outer join -- that means every shipment row appears in the output, including the ones with no invoice. Those are the rows where billing fields will be empty. That's exactly how this interface surfaces the revenue gap.
+
+**Auto-resolved (high confidence):** Date normalization, numeric casting, enum standardization -- all applied silently. These are safe, reversible syntactic transforms. You can inspect any of them in the panel.
+
+**Needs your review (medium confidence):** customer_name links via acct_id to customer_id. The field patterns look compatible -- both are alphanumeric account identifiers -- but I haven't confirmed the match rate against live data. I've flagged it for verification in the next step.
+
+**Needs your input before I can continue (low confidence -- metadata decision):** invoice_status. Two values appear where there's no invoice -- an empty null and the string 'N/A'. This matters because it determines which shipments get flagged as unbilled.
+
+This is a business semantics question I cannot answer. In your data:
+- Does N/A mean the same as null -- the invoice simply doesn't exist?
+- Or could N/A mean something different, like the shipment was intentionally not billed, or is exempt?
+
+Getting this wrong means either missing real revenue leakage or flagging shipments that were correctly not billed."
+
+Wait for their answer. Answer follow-up questions naturally.
+Never guess the answer to invoice_status. Never advise which option to choose.
+If they don't know: offer (1) safe assumption -- treat both as not billed, document for review, or (2) create ticket to Priya Mehta.
+If 'create ticket': say EXACTLY: "TICKET_CREATED -- Ticket INC0042817 created and assigned to Priya Mehta. She's been notified. Your progress is saved -- come back once she responds."
+When resolved, say EXACTLY: "Moving to connection verification now."
+
+CRITICAL — when confirming the user's invoice_status decision before advancing, you MUST include this exact phrase in your response so the UI can update:
+"Both null and 'N/A' will be treated as not billed"
+Then explain the consequences and ask if that's right before saying "Moving to connection verification now."`,
+    advance: /moving to connection verification now/i
+  },
+  4:{
+    sys:`You are Now Assist. You are in Connection Verification.
+
+WHAT YOU KNOW:
+orders_snowflake: VERIFIED. 98.7% join quality. All fields present.
+billing_transactions: VERIFIED. Join confirmed on order_id.
+customer_db: TIMEOUT. Connection timed out after 30s. NOT an access denial. NOT a data problem. Almost certainly temporary.
+
+First message: "I ran read-only checks on all three sources.
+
+orders_snowflake and billing_transactions both verified cleanly -- 98.7% join quality, all fields present.
+
+customer_db timed out after 30 seconds. This isn't an access error -- it's a connectivity issue, probably temporary load on the connector. It almost always resolves on retry.
+
+How would you like to handle it -- retry now, skip and continue, or remove customer_db from the interface?"
+
+Answer follow-up questions naturally.
+OFF-PATH "is the data wrong": "No -- a timeout doesn't mean the data is wrong. It means the connection didn't respond in time. Retrying almost always fixes it."
+OFF-PATH "was access denied": "No -- access denied would show a different error. This is just a connectivity timeout."
+OFF-PATH frustration: "Totally fair -- you're almost done and a timeout is annoying. The good news is this almost always resolves on retry. Want me to try again?"
+
+When user decides, show the session end. Say EXACTLY: "SESSION_COMPLETE"
+
+After retry/skip/remove is resolved, always ask: "Want to keep going, or any questions before we wrap up this part?"
+If user says yes/continue/done/ready/looks good or similar, say EXACTLY: "SESSION_COMPLETE"`,
+    advance: /SESSION_COMPLETE/i
+  }
+};
+
+
+// -----------------------------------------
+// PREVIEW CONTENT RENDERERS
+// -----------------------------------------
+function renderPlan(){
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">'
+    + '<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">1</div><div class="metric-tile-label">Data Interface</div><div class="metric-tile-sub">Recommended type</div></div>'
+    + '<div class="metric-tile metric-tile-green"><div class="metric-tile-val">FSM</div><div class="metric-tile-label">App Scope</div><div class="metric-tile-sub">Field Service Mgmt</div></div>'
+    + '<div class="metric-tile metric-tile-purple"><div class="metric-tile-val">3</div><div class="metric-tile-label">Sources</div><div class="metric-tile-sub">To be discovered</div></div>'
+    + '</div>'
+    + '<div class="panel-section">'
+    + '<div class="panel-section-hdr"><span class="panel-section-title">Goal</span></div>'
+    + '<div class="panel-section-body"><div class="p-prose">Surface fulfilled shipments that were never invoiced — giving your finance and operations teams one trusted view to catch revenue leakage without checking multiple systems.</div></div>'
+    + '</div>'
+    + '<div class="panel-section" style="margin-top:12px">'
+    + '<div class="panel-section-hdr"><span class="panel-section-title">Plan details</span></div>'
+    + '<div class="panel-section-body" style="padding:0">'
+    + '<div class="p-kv" style="padding:10px 18px"><span class="p-k">Asset type</span><span class="p-v">Data Interface <span style="font-size:11px;color:#9ca3af;margin-left:8px">Best fit for combining sources into one governed view</span></span></div>'
+    + '<div class="p-kv" style="padding:10px 18px"><span class="p-k">App scope</span><span class="p-v">Field Service Management <span style="font-size:11px;color:#9ca3af;margin-left:8px">Delivery + billing outcomes align to FSM</span></span></div>'
+    + '<div class="p-kv" style="padding:10px 18px"><span class="p-k">How it works</span><span class="p-v">Match every shipment against invoice records — rows with no match are the revenue gap</span></div>'
+    + '<div class="p-kv" style="padding:10px 18px"><span class="p-k">Name</span><span class="p-v" style="font-weight:600">Billing Reconciliation</span></div>'
+    + '<div class="p-kv" style="padding:10px 18px;border-bottom:none;background:#faf5ff;border-radius:0 0 10px 10px"><span class="p-k" style="color:#7c3aed">Data Product path</span><span class="p-v"><span style="color:#6d28d9">Once the interface is stable, package it into a <strong>Data Product</strong> — makes it discoverable org-wide with subscriber access and a usage contract. You can do this from the detail page after publishing.</span></span></div>'
+    + '</div></div>'
+    + '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;font-size:12.5px;color:#15803d;margin-top:12px">Review the plan above. Tell Now Assist if anything needs to change before we search for sources.</div>'
+    + '<div style="margin-top:16px;background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:14px 18px">'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:12px">What happens next &middot; 6 steps</div>'
+    + '<div style="display:flex;align-items:center;gap:0;overflow-x:auto">'
+    + _stepPill('Sources','1','active')
+    + _stepArrow()
+    + _stepPill('Schema','2','upcoming')
+    + _stepArrow()
+    + _stepPill('Verify','3','upcoming')
+    + _stepArrow()
+    + _stepPill('Access','4','upcoming')
+    + _stepArrow()
+    + _stepPill('Docs','5','upcoming')
+    + _stepArrow()
+    + _stepPill('Review','6','upcoming')
+    + '</div>'
+    + '<div style="font-size:11.5px;color:#9ca3af;margin-top:10px">Each step is guided. Most decisions are handled automatically &#8212; you&#8217;ll only be asked when something needs your input.</div>'
+    + '</div>';
+}
+
+function _stepPill(label, num, state){
+  var isActive = state === 'active';
+  var numBg   = isActive ? '#dcfce7' : '#f3f4f6';
+  var border  = isActive ? '#bbf7d0' : '#e5e7eb';
+  var numColor= isActive ? '#15803d' : '#9ca3af';
+  var txtColor= isActive ? '#15803d' : '#6b7280';
+  return '<div data-step-pill="'+num+'" style="display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0">'
+    +'<div data-step-circle style="width:28px;height:28px;border-radius:50%;background:'+numBg+';border:1.5px solid '+border+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:'+numColor+'">'+num+'</div>'
+    +'<span data-step-label style="font-size:11.5px;font-weight:'+(isActive?'600':'500')+';color:'+txtColor+';white-space:nowrap">'+label+'</span>'
+    +'</div>';
+}
+
+function _stepArrow(){
+  return '<div style="flex:1;height:1.5px;background:#e5e7eb;margin:0 6px;margin-bottom:18px;min-width:12px"></div>';
+}
+
+// Phase → step mapping
+function _injectStepStrip(currentStep){
+  var steps=[['Sources',1],['Schema',2],['Verify',3],['Access',4],['Docs',5],['Review',6]];
+  var wrap=document.createElement('div');
+  wrap.style.cssText='animation:in .2s ease;margin:4px 0 2px';
+  var html='<div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:12px 14px">'
+    +'<div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:10px">What happens next &middot; 6 steps</div>'
+    +'<div style="display:flex;align-items:center;gap:0">';
+  steps.forEach(function(s,i){
+    var n=s[1], label=s[0];
+    var done=n<currentStep, active=n===currentStep;
+    var circleBg    = done?'#009982':active?'#dcfce7':'#f3f4f6';
+    var circleBorder= done?'#009982':active?'#bbf7d0':'#e5e7eb';
+    var circleColor = done?'#fff'   :active?'#15803d':'#9ca3af';
+    var labelColor  = done?'#009982':active?'#15803d':'#9ca3af';
+    var fw          = (done||active)?'600':'500';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">'
+      +'<div style="width:26px;height:26px;border-radius:50%;background:'+circleBg+';border:1.5px solid '+circleBorder+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:'+circleColor+'">'+(done?'&#10003;':String(n))+'</div>'
+      +'<span style="font-size:11px;font-weight:'+fw+';color:'+labelColor+';white-space:nowrap">'+label+'</span>'
+      +'</div>';
+    if(i<steps.length-1){
+      html+='<div style="flex:1;height:1.5px;background:'+(done?'#009982':'#e5e7eb')+';margin:0 5px;margin-bottom:14px;min-width:8px"></div>';
+    }
+  });
+  html+='</div></div>';
+  wrap.innerHTML=html;
+  thread().appendChild(wrap);
+  forceScrollDown();
+}
+
+var _phaseStepMap = {plan:0, sources:1, schema:2, ticket:2, verify:3, access:4, docs:5, review:6};
+
+function _updateStepIndicator(phaseId){
+  // Only update if plan panel pills exist in DOM
+  var pills = document.querySelectorAll('[data-step-pill]');
+  if(!pills || pills.length===0) return;
+  var current = _phaseStepMap[phaseId] || 0;
+  pills.forEach(function(pill){
+    var n = parseInt(pill.getAttribute('data-step-pill'));
+    var done    = n < current;
+    var active  = n === current;
+    var upcoming= n > current;
+    var circle  = pill.querySelector('[data-step-circle]');
+    var label   = pill.querySelector('[data-step-label]');
+    if(circle){
+      circle.style.background   = done?'#009982':active?'#dcfce7':'#f3f4f6';
+      circle.style.borderColor  = done?'#009982':active?'#bbf7d0':'#e5e7eb';
+      circle.style.color        = done?'#fff'   :active?'#15803d':'#9ca3af';
+      circle.innerHTML          = done?'&#10003;':String(n);
+    }
+    if(label){
+      label.style.color      = done?'#009982':active?'#15803d':'#6b7280';
+      label.style.fontWeight = (done||active)?'600':'500';
+    }
+  });
+}
+function renderSources(){
+  var confColor={high:'#22c55e',medium:'#f59e0b',low:'#ef4444'};
+  var confLabel={high:'High confidence',medium:'Medium confidence',low:'Low confidence'};
+  var selectedHtml=Object.values(SOURCES).map(function(s){
+    var cert=s.certified
+      ?'<span class="badge b-green">&#10003; Certified</span>'
+      :'<span class="badge b-amber">Under Review</span>';
+    var confBadge='<span style="font-size:10px;font-weight:600;color:'+confColor[s.confidence]+'">'+confLabel[s.confidence]+'</span>';
+    return '<div class="p-src" style="border-left-color:'+confColor[s.confidence]+';margin-bottom:8px" onclick="openSrc(\''+s.name+'\')">'
+      +'<div style="flex:1">'
+      +'<div class="p-src-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+      +(s.system==='Snowflake'?'&#10052;':'&#10022;')+' '+s.name+' '+cert+' '+confBadge
+      +'</div>'
+      +'<div class="p-src-desc" style="margin-bottom:6px">'+s.confReason+'</div>'
+      +'<div class="p-src-tags" style="display:flex;gap:4px;flex-wrap:wrap">'
+      +'<span class="p-src-tag">'+s.system+'</span>'
+      +'<span class="p-src-tag">'+s.domain+'</span>'
+      +'<span class="p-src-tag">'+s.owner+'</span>'
+      +'</div></div>'
+      +'<div style="flex-shrink:0;margin-left:10px">'
+      +'<button onclick="event.stopPropagation();openSrc(\''+s.name+'\')" style="background:linear-gradient(135deg,#009982,#00c9a7);border:none;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--sans);white-space:nowrap">View details &#8594;</button>'
+      +'</div></div>';
+  }).join('');
+  var rejectedHtml=REJECTED_SOURCES.slice(0,10).map(function(r){
+    var lc=r.lifecycle==='Certified'?'#15803d':r.lifecycle==='Deprecated'?'#b91c1c':r.lifecycle==='Restricted'?'#7c3aed':'#92400e';
+    var lb=r.lifecycle==='Certified'?'#f0fdf4':r.lifecycle==='Deprecated'?'#fef2f2':r.lifecycle==='Restricted'?'#f5f3ff':'#fffbeb';
+    return '<div style="background:#f9fafb;border:1px solid #e9ecef;border-radius:9px;padding:9px 13px;margin-bottom:5px">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">'
+      +'<span style="font-size:12px;font-weight:600;color:#374151;font-family:var(--mono)">'+r.name+'</span>'
+      +'<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+lb+';color:'+lc+'">'+r.lifecycle+'</span>'
+      +'<span style="font-size:10.5px;color:#9ca3af">'+r.system+' \xb7 '+r.domain+'</span>'
+      +'</div>'
+      +'<div style="font-size:11.5px;color:#6b7280;line-height:1.55">'+r.reason_rejected+'</div>'
+      +'</div>';
+  }).join('');
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px">'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">47</div><div class="metric-tile-label">Sources Searched</div></div>'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">3</div><div class="metric-tile-label">Recommended</div></div>'
+    +'<div class="metric-tile metric-tile-gray"><div class="metric-tile-val">44</div><div class="metric-tile-label">Filtered Out</div></div>'
+    +'<div class="metric-tile metric-tile-purple"><div class="metric-tile-val">6</div><div class="metric-tile-label">Systems Scanned</div></div>'
+    +'</div>'
+    +'<div class="panel-section">'
+    +'<div class="panel-section-hdr"><span class="panel-section-title">Recommended &#8212; 3 of 47</span></div>'
+    +'<div class="panel-section-body" style="padding:14px 14px 6px">'+selectedHtml+'</div>'
+    +'</div>'
+    +'<div class="panel-section" style="margin-top:12px">'
+    +'<div class="panel-section-hdr"><span class="panel-section-title">Filtered out &#8212; 44 sources</span><span style="font-size:11px;color:#9ca3af">deprecated \xb7 wrong domain \xb7 wrong grain \xb7 restricted \xb7 uncertified</span></div>'
+    +'<div class="panel-section-body" style="padding:12px 14px 6px">'+rejectedHtml
+    +'<div style="font-size:11px;color:#9ca3af;font-style:italic;padding:4px 0">&#8230;34 more filtered results. Ask Now Assist about any specific source.</div>'
+    +'</div></div>';
+}
+function renderSchema(){
+  var invResolved  = schemaState.invoiceResolved;
+  var invTx        = schemaState.invoiceTx;
+  var custResolved = schemaState.customerResolved;
+
+  var fields=[
+    {label:'Invoice status', src:'invoice_status', tbl:'billing_transactions',
+     tx: invResolved ? invTx : 'Needs your input', txCls: invResolved ? 'green' : 'red',
+     layer:'Business logic', layerCls:'bizlogic',
+     res: invResolved ? 'Resolved' : 'Needs input', resCls: invResolved ? 'res-auto' : 'res-input',
+     rowHighlight: !invResolved,
+     note: invResolved ? 'Both null and N/A treated as missing invoice. Decision documented.' : 'null and "N/A" both appear where no invoice exists. Are they equivalent? This determines which shipments flag as unbilled.'},
+    {label:'Customer name', src:'customer_name', tbl:'customer_db',
+     tx:'Key relationship ID', txCls: custResolved ? 'green' : 'amber',
+     layer:'Business logic', layerCls:'bizlogic',
+     res: custResolved ? 'Verified' : 'Review', resCls: custResolved ? 'res-auto' : 'res-review',
+     rowHighlight: false,
+     note: custResolved ? 'acct_id to customer_id confirmed at 98.7%.' : 'acct_id mapped to customer_id at medium confidence. Verify match rate in verification step.'},
+    {label:'Order date',    src:'order_date',    tbl:'orders_snowflake',     tx:'Date normalization',   txCls:'green', layer:'Syntactic',      layerCls:'syn',      res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Standardized to ISO 8601.'},
+    {label:'Order ID',      src:'order_id',      tbl:'orders_snowflake',     tx:'Primary key',          txCls:'blue',  layer:'Business logic', layerCls:'bizlogic', res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Primary join key across all three sources.'},
+    {label:'Customer ID',   src:'customer_id',   tbl:'orders_snowflake',     tx:'Foreign key',          txCls:'blue',  layer:'Business logic', layerCls:'bizlogic', res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Foreign key linking to customer_db.'},
+    {label:'Order value',   src:'total_amount',  tbl:'orders_snowflake',     tx:'Numeric cast',         txCls:'green', layer:'Syntactic',      layerCls:'syn',      res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Cast to Decimal. Currency assumed USD.'},
+    {label:'Order status',  src:'order_status',  tbl:'orders_snowflake',     tx:'Enum standardization', txCls:'green', layer:'Syntactic',      layerCls:'syn',      res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Mapped to: Active, Shipped, Delivered, Cancelled.'},
+    {label:'Amount billed', src:'amount_billed', tbl:'billing_transactions', tx:'Currency cast',        txCls:'green', layer:'Syntactic',      layerCls:'syn',      res:'Auto-applied', resCls:'res-auto',  rowHighlight:false, note:'Cast to Decimal.'}
+  ];
+
+  var attn  = fields.filter(function(f){return f.res==='Needs input'||f.res==='Review';});
+  var meta  = fields.filter(function(f){return f.layer==='Business logic';});
+  var syn   = fields.filter(function(f){return f.layer==='Syntactic';});
+  var autoCount = 5 + (invResolved?1:0) + (custResolved?1:0);
+
+  // Field table row builder
+  function fieldRow(r,i,prefix){
+    var txColorMap = {red:'#b91c1c',amber:'#d97706',green:'#16a34a',blue:'#2563eb'};
+    var txColor = txColorMap[r.txCls]||'#374151';
+    var labelColor = r.resCls==='res-input'?'#b91c1c':r.resCls==='res-review'?'#d97706':'#111827';
+    var rowBg = r.rowHighlight ? '#fef9f9' : (i%2===0?'#fff':'#fafafa');
+    var statusBg    = r.resCls==='res-input'?'#fef2f2':r.resCls==='res-review'?'#fffbeb':'#f0fdf4';
+    var statusColor = r.resCls==='res-input'?'#b91c1c':r.resCls==='res-review'?'#d97706':'#15803d';
+    var layerBg = r.layerCls==='bizlogic'?'#eff6ff':'#f0fdf4';
+    var layerColor = r.layerCls==='bizlogic'?'#2563eb':'#15803d';
+    return '<div style="display:flex;align-items:center;gap:0;padding:12px 20px;border-bottom:1px solid #f3f4f6;cursor:pointer;background:'+rowBg+'" onmouseover="this.style.background=\'#f5f6f8\'" onmouseout="this.style.background=\''+rowBg+'\'" onclick="toggleSchemaDetail(\''+prefix+'-'+i+'\')">'
+      +'<span style="font-size:13.5px;font-weight:600;color:'+labelColor+';min-width:130px;flex-shrink:0">'+r.label+'</span>'
+      +'<span style="font-family:var(--mono);font-size:12px;color:#9ca3af;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.src+'</span>'
+      +'<span style="font-size:13px;font-weight:500;color:'+txColor+';flex-shrink:0;min-width:160px">'+r.tx+'</span>'
+      +'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+layerBg+';color:'+layerColor+';flex-shrink:0;min-width:105px;text-align:center">'+r.layer+'</span>'
+      +'<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+statusBg+';color:'+statusColor+';flex-shrink:0;min-width:95px;text-align:center">'+r.res+'</span>'
+      +'<span style="font-size:14px;color:#9ca3af;margin-left:8px;flex-shrink:0" id="chev-'+prefix+'-'+i+'">&#8250;</span>'
+      +'</div>'
+      +'<div id="det-'+prefix+'-'+i+'" style="display:none;padding:14px 20px;background:#f9fafb;border-bottom:1px solid #e9ecef">'
+      +'<div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:5px">AI reasoning</div>'
+      +'<div style="font-size:13px;color:#374151;line-height:1.65">'+r.note+'</div>'
+      +'<div style="margin-top:7px;font-size:11.5px;color:#9ca3af">Source: <span style="font-family:var(--mono);color:#6b7280">'+r.tbl+'</span></div>'
+      +'</div>';
+  }
+
+  var colHdr='<div style="display:flex;align-items:center;gap:0;padding:10px 20px;background:#f9fafb;border-bottom:1px solid #e9ecef">'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;min-width:130px;flex-shrink:0">Field</span>'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:1">Source field</span>'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex-shrink:0;min-width:160px">Transform</span>'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex-shrink:0;min-width:105px">Type</span>'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex-shrink:0;min-width:95px">Status</span>'
+    +'<span style="width:22px;flex-shrink:0"></span>'
+    +'</div>';
+
+  function tabRows(list,prefix){ return colHdr+list.map(function(r,i){return fieldRow(r,i,prefix);}).join(''); }
+
+  var tabBase='padding:11px 18px;font-size:14px;cursor:pointer;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;background:none;font-family:var(--sans);font-weight:500;color:#374151;white-space:nowrap;transition:all .1s';
+
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">8</div><div class="metric-tile-label">Fields Mapped</div><div class="metric-tile-sub">across 3 sources</div></div>'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">'+autoCount+'</div><div class="metric-tile-label">Auto-Applied</div><div class="metric-tile-sub">safe transforms</div></div>'
+    +(invResolved
+      ? '<div class="metric-tile metric-tile-green"><div class="metric-tile-val">&#10003;</div><div class="metric-tile-label">Resolved</div><div class="metric-tile-sub">invoice_status</div></div>'
+      : '<div class="metric-tile" style="background:#fef2f2;border:1px solid #fecaca"><div class="metric-tile-val" style="color:#b91c1c">1</div><div class="metric-tile-label" style="color:#b91c1c">Needs Input</div><div class="metric-tile-sub" style="color:#f87171">invoice_status</div></div>'
+    )
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706">'+(custResolved?'&#10003;':'1')+'</div><div class="metric-tile-label" style="color:#d97706">'+(custResolved?'Reviewed':'Needs Review')+'</div><div class="metric-tile-sub">'+(custResolved?'customer_name':'acct_id mapping')+'</div></div>'
+    +'</div>'
+
+    // Warning strip only when unresolved
+    +(invResolved ? '' :
+      '<div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:12px;padding:16px 18px;margin-bottom:16px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+      +'<span style="font-size:16px;flex-shrink:0">&#9888;</span>'
+      +'<span style="font-size:13.5px;font-weight:700;color:#b91c1c">invoice_status needs a decision before continuing</span>'
+      +'</div>'
+      +'<div style="font-size:13px;color:#7f1d1d;line-height:1.7;margin-bottom:10px">This is a business semantics question I cannot answer. In your data:'
+      +'<ul style="margin:8px 0 0 16px;display:flex;flex-direction:column;gap:5px">'
+      +'<li><strong>Does N/A mean the same as null</strong> \u2014 the invoice simply doesn\'t exist?</li>'
+      +'<li><strong>Or could N/A mean something different</strong> \u2014 like the shipment was intentionally not billed, or is exempt?</li>'
+      +'</ul>'
+      +'</div>'
+      +'<div style="font-size:12px;color:#9ca3af">Tell Now Assist which applies \u2014 or ask it to escalate to your billing data steward.</div>'
+      +'</div>'
+    )
+
+    // Join structure card
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-bottom:12px">'
+    +'<div style="padding:14px 18px 12px;border-bottom:1px solid #f3f4f6"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Join structure</span></div>'
+    +'<div style="padding:14px 20px">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+    +'<span style="font-family:var(--mono);font-size:12.5px;font-weight:600;color:#111827;background:#f3f4f6;border:1.5px solid #e5e7eb;padding:5px 12px;border-radius:8px">orders_snowflake</span>'
+    +'<span style="font-size:12px;color:#009982;font-weight:600">&larr; left outer &rarr;</span>'
+    +'<span style="font-family:var(--mono);font-size:12.5px;font-weight:600;color:#111827;background:#f3f4f6;border:1.5px solid #e5e7eb;padding:5px 12px;border-radius:8px">billing_transactions</span>'
+    +'<span style="font-size:12px;color:#009982;font-weight:600">&larr; left outer &rarr;</span>'
+    +'<span style="font-family:var(--mono);font-size:12.5px;font-weight:600;color:#92400e;background:#fffbeb;border:1.5px solid #fde68a;padding:5px 12px;border-radius:8px">customer_db &#9651;</span>'
+    +'</div>'
+    +'<div style="font-size:13px;color:#374151;line-height:1.65">Join key: <span style="font-family:var(--mono);font-size:12px;color:#2563eb;background:#eff6ff;padding:2px 7px;border-radius:5px">order_id</span> for the first two. customer_db joins via <span style="font-family:var(--mono);font-size:12px;color:#92400e;background:#fffbeb;padding:2px 7px;border-radius:5px">acct_id &rarr; customer_id</span> at medium confidence. Every shipment row appears &#8212; missing billing fields mean unbilled.</div>'
+    +'</div></div>'
+
+    // Schema table
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden">'
+    +'<div style="display:flex;border-bottom:1px solid #e9ecef;padding:0 8px">'
+    +'<button id="schema-tab-all"  onclick="switchSchemaTab(\'all\')"  style="'+tabBase+';color:#111827;font-weight:600;border-bottom-color:#009982">All fields (8)</button>'
+    +'<button id="schema-tab-attn" onclick="switchSchemaTab(\'attn\')" style="'+tabBase+'">Needs attention ('+attn.length+')</button>'
+    +'<button id="schema-tab-meta" onclick="switchSchemaTab(\'meta\')" style="'+tabBase+'">Business logic</button>'
+    +'<button id="schema-tab-syn"  onclick="switchSchemaTab(\'syn\')"  style="'+tabBase+'">Syntactic</button>'
+    +'</div>'
+    +'<div id="schema-rows-all"  style="display:flex;flex-direction:column">'+tabRows(fields,'a')+'</div>'
+    +'<div id="schema-rows-attn" style="display:none;flex-direction:column">'+tabRows(attn,'n')+'</div>'
+    +'<div id="schema-rows-meta" style="display:none;flex-direction:column">'+tabRows(meta,'m')+'</div>'
+    +'<div id="schema-rows-syn"  style="display:none;flex-direction:column">'+tabRows(syn,'s')+'</div>'
+    +'</div>';
+}
+var verifyState = { customerDbRetried: false, customerDbSkipped: false, customerDbRemoved: false };
+
+function renderVerify(){
+  function srcCard(name, sys, detail, status, color){
+    var isGreen = color==='green';
+    var nameColor = isGreen ? '#16a34a' : '#d97706';
+    var accentColor = isGreen ? '#22c55e' : '#f59e0b';
+    var badgeBg = isGreen ? '#f0fdf4' : '#fffbeb';
+    var badgeColor = isGreen ? '#15803d' : '#92400e';
+    var icon = isGreen ? '&#10003;' : '&#9651;';
+    return '<div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;border-left:3px solid '+accentColor+';padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      +'<div>'
+      +'<div style="font-size:14px;font-weight:600;color:'+nameColor+';margin-bottom:3px">'+icon+' '+name+'</div>'
+      +'<div style="font-size:12px;color:#9ca3af;margin-bottom:4px">'+sys+'</div>'
+      +'<div style="font-size:13px;color:#374151">'+detail+'</div>'
+      +'</div>'
+      +'<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+';flex-shrink:0;margin-left:16px">'+status+'</span>'
+      +'</div>';
+  }
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">2</div><div class="metric-tile-label">Verified</div><div class="metric-tile-sub">Access confirmed</div></div>'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">98.7%</div><div class="metric-tile-label">Join Quality</div><div class="metric-tile-sub">on order_id</div></div>'
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706">1</div><div class="metric-tile-label" style="color:#d97706">Timed Out</div><div class="metric-tile-sub">customer_db</div></div>'
+    +'</div>'
+    +'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:13px;color:#15803d;margin-bottom:16px">&#10003; 2 of 3 sources verified — join quality 98.7%, sample output clean.</div>'
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-bottom:16px">'
+    +'<div style="padding:14px 18px 10px;border-bottom:1px solid #f3f4f6"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Source status</span></div>'
+    +'<div style="padding:12px 16px">'
+    +srcCard('orders_snowflake','&#10052; Snowflake','98.7% join quality &middot; 12,450 rows sampled','Verified','green')
+    +srcCard('billing_transactions','&#10052; Snowflake','Join confirmed on order_id','Verified','green')
+    +srcCard('customer_db','&#10022; ServiceNow','Connection timed out after 30s. This is usually a temporary issue, not an access problem.','Timeout','amber')
+    +'</div></div>'
+    +'<div style="display:flex;gap:10px">'
+    +'<button onclick="retryVerify(this)" style="background:#009982;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13.5px;font-weight:600;font-family:var(--sans);cursor:pointer">Retry customer_db</button>'
+    +'<button onclick="skipVerify(this)" style="background:#fff;color:#374151;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 20px;font-size:13.5px;font-weight:600;font-family:var(--sans);cursor:pointer">Skip for now</button>'
+    +'<button onclick="removeVerify(this)" style="background:#fff;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 20px;font-size:13.5px;font-weight:600;font-family:var(--sans);cursor:pointer">Remove</button>'
+    +'</div>';
+}
+
+function retryVerify(btn){
+  btn.textContent='Retrying...'; btn.disabled=true;
+  // Disable other buttons
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+  setTimeout(function(){
+    verifyState.customerDbRetried = true;
+    resolveCustomerName();
+    var panel=document.getElementById('prev-body');
+    if(panel){
+      function vCard(name,sys,detail){
+        return '<div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;border-left:3px solid #22c55e;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          +'<div><div style="font-size:14px;font-weight:600;color:#16a34a;margin-bottom:3px">&#10003; '+name+'</div>'
+          +'<div style="font-size:12px;color:#9ca3af;margin-bottom:4px">'+sys+'</div>'
+          +'<div style="font-size:13px;color:#374151">'+detail+'</div></div>'
+          +'<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:#f0fdf4;color:#15803d;flex-shrink:0;margin-left:16px">Verified</span>'
+          +'</div>';
+      }
+      panel.innerHTML='<div style="animation:panelIn .2s ease">'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">'
+        +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">3</div><div class="metric-tile-label">Verified</div><div class="metric-tile-sub">All confirmed</div></div>'
+        +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">98.7%</div><div class="metric-tile-label">Join Quality</div><div class="metric-tile-sub">on order_id</div></div>'
+        +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">4,210</div><div class="metric-tile-label">Customers</div><div class="metric-tile-sub">Matched</div></div>'
+        +'</div>'
+        +'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;font-size:13px;color:#15803d;margin-bottom:16px">&#10003; All 3 sources verified — join quality confirmed across all sources.</div>'
+        +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden">'
+        +'<div style="padding:14px 18px 10px;border-bottom:1px solid #f3f4f6"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Source status</span></div>'
+        +'<div style="padding:12px 16px">'
+        +vCard('orders_snowflake','&#10052; Snowflake','98.7% join quality &middot; 12,450 rows sampled')
+        +vCard('billing_transactions','&#10052; Snowflake','Join confirmed on order_id')
+        +vCard('customer_db','&#10022; ServiceNow','Connection restored &middot; 4,210 customer records matched')
+        +'</div></div>'
+        +'</div>';
+    }
+    // Inject context into AI so it knows retry worked
+    msgs.push({role:'user', content:'The retry worked -- customer_db is now verified.'});
+    msgs.push({role:'assistant', content:'Connected — 4,210 customer records matched. All three sources are good.'});
+    setTimeout(function(){
+      addAI('Connected — 4,210 customer records matched. All three sources are good.\n\nThat\'s verification done. Want to keep going, or any questions before we wrap up this part?', function(){
+        busy=false; setSendStop(false);
+      });
+    }, 400);
+  }, 2200);
+}
+
+function skipVerify(btn){
+  btn.textContent='Skipped'; btn.style.background='#f0fdf4'; btn.style.borderColor='#bbf7d0'; btn.style.color='#15803d';
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+  verifyState.customerDbSkipped = true;
+  // Update panel to show skipped state
+  var panel=document.getElementById('prev-body');
+  if(panel){
+    var cur = panel.innerHTML;
+    panel.innerHTML = cur.replace(
+      '<div style="display:flex;gap:10px">',
+      '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:12px">&#9651; customer_db skipped — verification will re-run before publishing.</div><div style="display:none">'
+    );
+  }
+  msgs.push({role:'user', content:'Skip for now.'});
+  msgs.push({role:'assistant', content:'Sure — verification will re-run before you publish, so this won\'t block you.'});
+  setTimeout(function(){
+    addAI('Sure — skipped for now. Verification will re-run automatically before you publish, so this won\'t hold anything up.\n\nWant to keep going, or any questions before we wrap up this part?', function(){
+      busy=false; setSendStop(false);
+    });
+  }, 300);
+}
+
+function removeVerify(btn){
+  btn.textContent='Removed'; btn.style.background='#fff5f5'; btn.style.borderColor='#fecaca'; btn.style.color='#dc2626';
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+  verifyState.customerDbRemoved = true;
+  var panel=document.getElementById('prev-body');
+  if(panel){
+    var cur = panel.innerHTML;
+    panel.innerHTML = cur.replace(
+      '<div style="display:flex;gap:10px">',
+      '<div style="background:#fff5f5;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:13px;color:#b91c1c;margin-bottom:12px">customer_db removed. Customer name grouping won\'t be in the output — the unbilled shipment detection still works fine without it.</div><div style="display:none">'
+    );
+  }
+  msgs.push({role:'user', content:'Remove customer_db.'});
+  msgs.push({role:'assistant', content:'Removed. The interface still works — you\'ll just be missing customer name grouping in the output.'});
+  setTimeout(function(){
+    addAI('Done — customer_db removed from the interface.\n\nThe unbilled shipment detection still works without it. You\'ll just be missing customer name grouping in the output. If you need it later, you can add it back.\n\nWant to keep going, or any questions before we wrap up this part?', function(){
+      busy=false; setSendStop(false);
+    });
+  }, 300);
+}
+
+function renderAccess(){
+  function aCard(name, sys, detail, status, color){
+    var accentColor = color==='green' ? '#22c55e' : '#f59e0b';
+    var nameColor   = color==='green' ? '#16a34a' : '#374151';
+    var badgeBg     = color==='green' ? '#f0fdf4' : '#fffbeb';
+    var badgeColor  = color==='green' ? '#15803d' : '#92400e';
+    return '<div style="background:#fff;border:1px solid #e9ecef;border-radius:12px;border-left:3px solid '+accentColor+';padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      +'<div>'
+      +'<div style="font-size:14px;font-weight:600;color:'+nameColor+';margin-bottom:3px">'+name+'</div>'
+      +'<div style="font-size:12px;color:#9ca3af;margin-bottom:4px">'+sys+'</div>'
+      +'<div style="font-size:13px;color:#374151">'+detail+'</div>'
+      +'</div>'
+      +'<span style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+';flex-shrink:0;margin-left:16px">'+status+'</span>'
+      +'</div>';
+  }
+  return '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">2</div><div class="metric-tile-label">Auto-Configured</div></div>'
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706">1</div><div class="metric-tile-label" style="color:#d97706">Pending Approval</div></div>'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">1</div><div class="metric-tile-label">Role Created</div></div>'
+    +'</div>'
+    +'<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:16px">&#9679; 2 of 3 sources ready. Access request submitted for customer_db.</div>'
+
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-bottom:12px">'
+    +'<div style="padding:14px 18px 10px;border-bottom:1px solid #f3f4f6"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Source access</span></div>'
+    +'<div style="padding:12px 16px">'
+    +aCard('orders_snowflake','&#10052; Snowflake','Auto-configured via Snowflake connector','Configured','green')
+    +aCard('billing_transactions','&#10052; Snowflake','Auto-configured via Snowflake connector','Configured','green')
+    +aCard('customer_db','&#10022; ServiceNow','Access request submitted automatically &#8212; REQ0018492','Pending approval','amber')
+    +'</div></div>'
+
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-bottom:14px">'
+    +'<div style="padding:14px 18px 10px;border-bottom:1px solid #f3f4f6"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Generated access role</span></div>'
+    +'<div style="padding:16px 18px">'
+    +'<div style="font-family:var(--mono);font-size:13px;color:#2563eb;background:#eff6ff;border:1px solid #bfdbfe;padding:10px 14px;border-radius:8px;margin-bottom:10px">di_billing_reconciliation_reader</div>'
+    +'<div style="font-size:13px;color:#6b7280;line-height:1.6">Bundles read access to all three sources. Assign this role to any team member who needs to query this interface.</div>'
+    +'</div></div>'
+
+    +'<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 18px;font-size:13px;color:#92400e;line-height:1.65">'
+    +'<strong>What happens next:</strong> Your ServiceNow admin will receive REQ0018492 to approve customer_db access. You can continue building &#8212; access will activate automatically once approved, before you publish.'
+    +'</div>';
+}
+function renderDocs(){
+  var kvRows=[
+    ['Interface name','df_shipment_billing_reconciliation'],
+    ['Sources','orders_snowflake \xb7 billing_transactions \xb7 customer_db'],
+    ['Join','Left outer join on order_id'],
+    ['Output','15 columns \xb7 8 transforms applied'],
+    ['Access role','di_shipment_billing_reader'],
+    ['Refresh','Every 18 minutes']
+  ];
+  var kvHtml=kvRows.map(function(r,i){
+    return '<div style="display:flex;gap:16px;padding:11px 0;border-bottom:1px solid #f3f4f6;">'
+      +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;min-width:130px;flex-shrink:0;padding-top:2px">'+r[0]+'</span>'
+      +'<span style="font-size:13.5px;color:#111827">'+r[1]+'</span>'
+      +'</div>';
+  }).join('');
+
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">91%</div><div class="metric-tile-label">Documentation Complete</div><div class="metric-tile-sub">Tier B hydration</div></div>'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">6</div><div class="metric-tile-label">System Fields Auto-Gen</div><div class="metric-tile-sub">No editing needed</div></div>'
+    +'</div>'
+
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-bottom:12px">'
+    +'<div style="padding:14px 18px 12px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between">'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Written by you</span>'
+    +'<span style="font-size:12px;color:#9ca3af">Edit to match your team\'s language</span>'
+    +'</div>'
+    +'<div style="padding:18px 20px;display:flex;flex-direction:column;gap:16px">'
+    +'<div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:7px">What does this do?</div>'
+    +'<textarea style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--sans);color:#374151;resize:vertical;line-height:1.6;outline:none;background:#fafafa;min-height:64px" onfocus="this.style.borderColor=\'#009982\';this.style.background=\'#fff\'" onblur="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#fafafa\'" onchange="note(\'User edited purpose\')">Surfaces fulfilled shipments that were never invoiced so finance and operations teams can catch revenue leakage without manually checking multiple systems.</textarea>'
+    +'</div>'
+    +'<div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:7px">How to read results</div>'
+    +'<textarea style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--sans);color:#374151;resize:vertical;line-height:1.6;outline:none;background:#fafafa;min-height:80px" onfocus="this.style.borderColor=\'#009982\';this.style.background=\'#fff\'" onblur="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#fafafa\'" onchange="note(\'User edited how-to\')">Filter by invoice_status = null or N/A to see unbilled shipments. Group by customer_name or carrier_name to identify patterns. Sort by total_amount descending to prioritize high-value gaps.</textarea>'
+    +'</div>'
+    +'<div>'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:7px">Good to know</div>'
+    +'<textarea style="width:100%;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--sans);color:#374151;resize:vertical;line-height:1.6;outline:none;background:#fafafa;min-height:64px" onfocus="this.style.borderColor=\'#009982\';this.style.background=\'#fff\'" onblur="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#fafafa\'" onchange="note(\'User edited limitations\')">invoice_status N/A may mean intentionally not billed -- verify a sample before acting on results. customer_db is not yet certified.</textarea>'
+    +'</div>'
+    +'</div></div>'
+
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden">'
+    +'<div style="padding:14px 18px 12px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between">'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Auto-generated</span>'
+    +'<span style="font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">&#10022; AI</span>'
+    +'</div>'
+    +'<div style="padding:4px 20px 14px">'+kvHtml+'</div>'
+    +'</div>';
+}
+function renderReview(){
+  var outputRows=[
+    {order_id:'ORD-10021',customer:'Acme Corp',delivery:'2024-01-10',amount:'$4,200.00',invoice_status:'No invoice',unbilled:true},
+    {order_id:'ORD-10022',customer:'Globex Inc',delivery:'2024-01-11',amount:'$1,850.00',invoice_status:'Paid',unbilled:false},
+    {order_id:'ORD-10023',customer:'Initech',delivery:'2024-01-12',amount:'$3,100.00',invoice_status:'No invoice',unbilled:true},
+    {order_id:'ORD-10024',customer:'Umbrella LLC',delivery:'2024-01-13',amount:'$920.00',invoice_status:'Pending',unbilled:false},
+    {order_id:'ORD-10025',customer:'Soylent Corp',delivery:'2024-01-14',amount:'$6,750.00',invoice_status:'No invoice',unbilled:true}
+  ];
+
+  var summaryRows=[
+    ['Name','Billing Reconciliation'],
+    ['Type','Data Interface \u2014 Field Service Management'],
+    ['Sources','orders_snowflake \xb7 billing_transactions \xb7 customer_db'],
+    ['Output','15 columns \xb7 8 transforms applied'],
+    ['Join quality','98.7% on order_id'],
+    ['Access role','di_billing_reconciliation_reader']
+  ];
+  var summaryHtml=summaryRows.map(function(r,i){
+    return '<div class="p-kv" style="display:flex;gap:10px;padding:9px 18px;background:'+(i%2?'#f9fafb':'#fff')+'"><span class="p-k">'+r[0]+'</span><span class="p-v" style="font-size:13px">'+r[1]+'</span></div>';
+  }).join('');
+
+  var srcRows=[
+    ['orders_snowflake','Verified','green','98.7% join quality \xb7 access confirmed','#22c55e'],
+    ['billing_transactions','Verified','green','Join confirmed on order_id','#22c55e'],
+    ['customer_db','Access pending','amber','REQ0018492 submitted \u2014 awaiting admin approval','#f59e0b']
+  ];
+  var srcHtml=srcRows.map(function(r){
+    return '<div class="v-card" style="display:flex;align-items:center;justify-content:space-between;border-left:3px solid '+r[4]+';margin-bottom:8px">'
+      +'<div><div style="font-size:13px;font-weight:600;color:#111827;margin-bottom:2px">'+r[0]+'</div>'
+      +'<div style="font-size:11px;color:#9ca3af">'+r[3]+'</div></div>'
+      +'<span class="badge b-'+r[2]+'" style="flex-shrink:0;margin-left:12px">'+r[1]+'</span>'
+      +'</div>';
+  }).join('');
+
+  // Table header matching panel-section col-hdr style
+  var tblHdr='<div style="display:flex;align-items:center;gap:0;padding:7px 14px;background:#f9fafb;border-bottom:1px solid #e9ecef">'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:0 0 100px">Order ID</span>'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:1">Customer</span>'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:0 0 90px">Delivered</span>'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:0 0 90px">Value</span>'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:0 0 90px">Invoice</span>'
+    +'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;flex:0 0 70px;text-align:right">Unbilled?</span>'
+    +'</div>';
+
+  var tblRows=outputRows.map(function(r,i){
+    return '<div style="display:flex;align-items:center;gap:0;padding:10px 14px;border-bottom:1px solid #f3f4f6;background:'+(r.unbilled?'#fef9f9':'#fff')+'">'
+      +'<span style="font-family:var(--mono);font-size:10.5px;color:#374151;flex:0 0 100px">'+r.order_id+'</span>'
+      +'<span style="font-size:12.5px;color:#111827;flex:1">'+r.customer+'</span>'
+      +'<span style="font-family:var(--mono);font-size:10.5px;color:#6b7280;flex:0 0 90px">'+r.delivery+'</span>'
+      +'<span style="font-family:var(--mono);font-size:10.5px;color:#374151;flex:0 0 90px">'+r.amount+'</span>'
+      +'<span style="font-size:12px;color:'+(r.unbilled?'#b91c1c':'#374151')+';flex:0 0 90px">'+r.invoice_status+'</span>'
+      +'<span style="flex:0 0 70px;text-align:right">'+(r.unbilled?'<span style="background:#fef2f2;color:#b91c1c;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid #fecaca">Yes</span>':'<span style="color:#d1d5db;font-size:11.5px">&#8212;</span>')+'</span>'
+      +'</div>';
+  }).join('');
+
+  return '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px">'
+    +'<div class="metric-tile metric-tile-blue"><div class="metric-tile-val">3</div><div class="metric-tile-label">Sources</div><div class="metric-tile-sub">Verified</div></div>'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">15</div><div class="metric-tile-label">Output Columns</div><div class="metric-tile-sub">8 transforms</div></div>'
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706">60%</div><div class="metric-tile-label" style="color:#92400e">Unbilled in sample</div><div class="metric-tile-sub">estimated, not final</div></div>'
+    +'<div class="metric-tile metric-tile-purple"><div class="metric-tile-val">98.7%</div><div class="metric-tile-label">Join Quality</div><div class="metric-tile-sub">on order_id</div></div>'
+    +'</div>'
+    +'<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:0">'
+    +'<span style="font-size:16px;flex-shrink:0">&#10003;</span>'
+    +'<div><div style="font-size:13.5px;font-weight:700;color:#15803d;margin-bottom:2px">Ready to create a draft</div>'
+    +'<div style="font-size:12px;color:#15803d">Nothing goes live until you explicitly publish.</div>'
+    +'</div></div>'
+
+    +'<div class="panel-section" style="margin-top:12px"><div class="panel-section-hdr"><span class="panel-section-title">Interface summary</span></div>'
+    +'<div class="panel-section-body" style="padding:0">'+summaryHtml+'</div></div>'
+
+    +'<div class="panel-section" style="margin-top:12px"><div class="panel-section-hdr"><span class="panel-section-title">Source status</span></div>'
+    +'<div class="panel-section-body" style="padding:10px 14px">'+srcHtml+'</div></div>'
+
+    // Output preview — no <table>, use flex rows matching schema style
+    +'<div class="panel-section" style="margin-top:12px">'
+    +'<div class="panel-section-hdr"><span class="panel-section-title">Output preview</span>'
+    +'<span style="font-size:11px;color:#9ca3af">3 of 5 rows unbilled</span></div>'
+    +tblHdr+tblRows
+    +'<div style="padding:10px 14px;background:#f9fafb;border-top:1px solid #e9ecef;font-size:11.5px;color:#6b7280">5 sample rows shown. Shipments with no matching invoice appear in red &#8212; these are the revenue gaps this interface surfaces.</div>'
+    +'</div>'
+
+    +'<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:12.5px;color:#92400e">'
+    +'<strong>Before publishing:</strong> customer_db access (REQ0018492) is pending. The interface works now &#8212; customer name grouping activates once approved.'
+    +'</div>';
+}
+function renderTicket(){
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px">'
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706">DGR-2847</div><div class="metric-tile-label" style="color:#92400e">Ticket ID</div><div class="metric-tile-sub">Data Governance Request</div></div>'
+    +'<div class="metric-tile" style="background:#fffbeb;border:1px solid #fde68a"><div class="metric-tile-val" style="color:#d97706;font-size:18px">Awaiting</div><div class="metric-tile-label" style="color:#92400e">Response Status</div><div class="metric-tile-sub">Priya Mehta notified</div></div>'
+    +'</div>'
+    +'<div class="ok-banner" style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
+    +'<span style="font-size:16px">&#10003;</span><span>Ticket created and assigned to Priya Mehta &#8212; she has been notified</span>'
+    +'</div>'
+    +'<div class="panel-section">'
+    +'<div class="panel-section-hdr" style="background:linear-gradient(135deg,#1a2332,#1f3a34)">'
+    +'<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.04em">ServiceNow &#8212; Data Governance Request</span>'
+    +'<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">&#9679; Awaiting response</span>'
+    +'</div>'
+    +'<div class="panel-section-body" style="display:flex;flex-direction:column;gap:12px">'
+    +'<div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px">Title</div>'
+    +'<div style="font-size:14px;font-weight:700;color:#111827;letter-spacing:-.01em;line-height:1.3">Define invoice_status: null vs N/A &#8212; Shipment billing reconciliation</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+    +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px">Assigned to</div>'
+    +'<div style="font-size:13px;font-weight:600;color:#111827">Priya Mehta</div>'
+    +'<div style="font-size:11px;color:#9ca3af">billing_transactions steward</div></div>'
+    +'<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px">Priority</div>'
+    +'<div style="font-size:13px;font-weight:600;color:#d97706">Medium</div></div>'
+    +'</div>'
+    +'<div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:6px">Context &#8212; auto-filled by Now Assist</div>'
+    +'<div style="background:#f9fafb;border:1px solid #e9ecef;border-radius:9px;padding:12px 14px;font-size:12.5px;color:#374151;line-height:1.7">'
+    +'Building a data interface to surface unbilled shipments for revenue leakage detection.<br><br>'
+    +'The <code style="font-family:var(--mono);background:#eff6ff;color:#2563eb;padding:1px 5px;border-radius:4px;font-size:11px">invoice_status</code> field in '
+    +'<code style="font-family:var(--mono);background:#eff6ff;color:#2563eb;padding:1px 5px;border-radius:4px;font-size:11px">billing_transactions</code> has two values that appear where no invoice exists: a null value and the string &quot;N/A&quot;.<br><br>'
+    +'<strong>Question:</strong> Are these equivalent (both mean &quot;not billed&quot;), or does N/A carry a different business meaning?<br><br>'
+    +'<strong>Why it matters:</strong> This determines which shipments get flagged as unbilled. An incorrect mapping will either miss real revenue leakage or create false positives.'
+    +'</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11.5px;color:#9ca3af;background:#f9fafb;padding:10px 12px;border-radius:8px">'
+    +'<div><span style="font-weight:600;color:#374151">Created by:</span> Now Assist</div>'
+    +'<div><span style="font-weight:600;color:#374151">Source:</span> billing_transactions</div>'
+    +'<div><span style="font-weight:600;color:#374151">Interface:</span> Billing Reconciliation</div>'
+    +'<div><span style="font-weight:600;color:#374151">Ticket ID:</span> DGR-2847</div>'
+    +'</div></div></div>'
+    +'<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12.5px;color:#92400e">'
+    +'Your progress is saved. Return to this interface once Priya responds &#8212; Now Assist will apply her answer and continue from here.'
+    +'</div>';
+}
+// -----------------------------------------
+// PREVIEW PANEL -- single output, no tabs
+// -----------------------------------------
+
+// Phase definitions in conversation order
+const PHASES = [
+  {id:'plan',    label:'Plan',                 render:renderPlan},
+  {id:'sources', label:'Sources',              render:renderSources},
+  {id:'schema',  label:'Schema & Transforms',  render:renderSchema},
+  {id:'ticket',  label:'Governance Ticket',    render:renderTicket},
+  {id:'verify',  label:'Verification',         render:renderVerify},
+  {id:'access',  label:'Access',               render:renderAccess},
+  {id:'docs',    label:'Documentation',        render:renderDocs},
+  {id:'review',  label:'Review & Draft',       render:renderReview},
+];
+
+let phaseHistory = []; // stack of phase ids for back navigation
+let currentPhase = null;
+
+function showPhase(phaseId, pushHistory){
+  const def = PHASES.find(p=>p.id===phaseId);
+  if(!def) return;
+
+  if(pushHistory && currentPhase && currentPhase!==phaseId){
+    if(!phaseHistory.includes(currentPhase)) phaseHistory.push(currentPhase);
+  }
+  currentPhase = phaseId;
+
+  // Update panel header
+  const title = document.getElementById('ph-title');
+  const label = document.getElementById('phase-label');
+  const back  = document.getElementById('phase-back');
+  const sep   = document.getElementById('phase-sep');
+  if(title) title.textContent = 'Shipment billing reconciliation';
+  if(label) label.textContent = def.label;
+  if(back && sep){
+    const canBack = phaseHistory.length > 0;
+    back.className = 'phase-back' + (canBack?' show':'');
+    sep.style.display = canBack?'':'none';
+    if(canBack){
+      const prevId = phaseHistory[phaseHistory.length-1];
+      const prevDef = PHASES.find(p=>p.id===prevId);
+      back.textContent = '← ' + (prevDef?prevDef.label:'Back');
+    }
+  }
+
+  // Enable draft button only on review phase
+  const draftBtn=document.getElementById('draft-btn');
+  if(draftBtn){
+    if(phaseId==='review'){
+      draftBtn.disabled=false;
+      draftBtn.style.opacity='1';
+      draftBtn.style.cursor='pointer';
+    } else if(!draftBtn.textContent.includes('✓')){
+      draftBtn.disabled=true;
+      draftBtn.style.opacity='.4';
+      draftBtn.style.cursor='not-allowed';
+    }
+  }
+
+  // Render content
+  const body = document.getElementById('prev-body');
+  if(body){
+    body.innerHTML = `<div class="panel-fade">${def.render()}</div>`;
+    body.scrollTop = 0;
+  }
+  // Update step indicator in plan panel if it's visible
+  _updateStepIndicator(phaseId);
+
+  // Footer status
+  const footerLabels = {
+    plan:    '✦ Review the plan -- confirm when ready',
+    sources: '✦ 3 sources identified -- review and confirm',
+    schema:  '⚠ 1 field needs your input before continuing',
+    verify:  '✓ 2 of 3 sources verified',
+    access:  '◑ customer_db access request needed',
+    docs:    '✦ Documentation 91% complete -- review and edit',
+    review:  '✓ All steps complete -- ready to create draft'
+  };
+  const pf = document.getElementById('pf-status');
+  if(pf) pf.textContent = footerLabels[phaseId]||'';
+
+  // Status badge
+  const st = document.getElementById('ph-status');
+  if(st){
+    if(phaseId==='review'){st.textContent='● Ready';st.className='ph-status st-ready';}
+    else{st.textContent='● In progress';st.className='ph-status st-progress';}
+  }
+}
+
+function goBackPhase(){
+  if(phaseHistory.length===0) return;
+  const prev = phaseHistory.pop();
+  showPhase(prev, false);
+}
+
+function openPanel(phaseId){
+  splitOpen = true;
+  document.getElementById('shell').classList.add('split');
+  showPhase(phaseId, true);
+}
+
+function closePreview(){
+  splitOpen = false;
+  document.getElementById('shell').classList.remove('split');
+}
+
+function updateFooter(){ /* handled inside showPhase */ }
+function unlockAndOpenTab(id){ openPanel(id); } // compat shim for showCard calls
+function switchTab(id){ showPhase(id, true); } // compat shim
+
+function onDraft(){
+  const btn=document.getElementById('draft-btn');
+  if(btn){btn.textContent='✓ Draft created';btn.style.background='#16a34a';btn.disabled=true;}
+  const st=document.getElementById('ph-status');
+  if(st){st.textContent='● Draft saved';st.className='ph-status st-ready';}
+  note('User created the draft interface');
+}
+
+// -----------------------------------------
+// SOURCE DETAIL -- opens right panel as full catalog page
+// -----------------------------------------
+function openSrc(key){
+  const s=SOURCES[key]; if(!s) return;
+
+  splitOpen=true;
+  document.getElementById('shell').classList.add('split');
+
+  const phLabel=document.getElementById('phase-label');
+  if(phLabel) phLabel.textContent='';
+  const back=document.getElementById('phase-back');
+  const sep=document.getElementById('phase-sep');
+  if(back){back.textContent='← Sources';back.className='phase-back show';back.onclick=()=>closePreview();}
+  if(sep) sep.style.display='';
+
+  const title=document.getElementById('ph-title');
+  if(title) title.textContent=s.name;
+  const sub=document.getElementById('ph-sub');
+  if(sub) sub.textContent=(s.system==='Snowflake'?'❄ Snowflake':'✦ ServiceNow')+' · '+s.hierarchy;
+
+  const isCert   = s.certified;
+  const lcColor  = isCert ? '#15803d' : '#92400e';
+  const lcBg     = isCert ? '#f0fdf4' : '#fffbeb';
+  const lcBorder = isCert ? '#bbf7d0' : '#fde68a';
+  const lcLabel  = isCert ? 'Certified' : 'Under Review';
+  const confColor= s.confidence==='high' ? '#15803d' : '#d97706';
+  const totalCols= s.cols.reduce((a,c)=>a+c.fields.length,0);
+
+  // ── Column rows — matching screenshot's T String | field1 | field2 style ──
+  function colRow(c){
+    const icons={String:'T',Number:'#',Date:'⊞'};
+    const fields=c.fields.map(f=>`<span style="font-size:13px;color:#374151;padding:0 10px;border-left:1px solid #e5e7eb;font-family:var(--mono)">${f}</span>`).join('');
+    return '<div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6">'
+      +'<div style="display:flex;align-items:center;gap:8px;min-width:120px;flex-shrink:0">'
+      +'<span style="font-size:11px;font-weight:700;color:#6b7280;background:#f3f4f6;border:1px solid #e5e7eb;padding:2px 7px;border-radius:4px">'+(icons[c.type]||'·')+'</span>'
+      +'<span style="font-size:13px;color:#374151">'+c.type+'</span>'
+      +'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;align-items:center">'+fields+'</div>'
+      +'</div>';
+  }
+  const colsHtml=s.cols.map(colRow).join('');
+
+  // ── Related assets ──
+  const relByKind={};
+  s.related.forEach(r=>{if(!relByKind[r.kind])relByKind[r.kind]=[];relByKind[r.kind].push(r.name);});
+  const relHtml=Object.entries(relByKind).map(function([kind,names]){
+    const icon=kind==='Schema'?'&#9390;':'&#8862;';
+    const chips=names.map(n=>'<span style="font-size:12.5px;color:#2563eb;background:#fff;border:1px solid #e5e7eb;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:var(--mono)">'+icon+' '+n+'</span>').join('');
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6">'
+      +'<span style="font-size:13px;color:#374151;min-width:72px;flex-shrink:0">'+kind+'</span>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+chips+'</div>'
+      +'</div>';
+  }).join('');
+
+  // ── Glossary ──
+  const glossHtml=s.glossary.map(g=>'<span style="font-size:13px;color:#2563eb;cursor:pointer">'+g+'</span>').join('<span style="color:#d1d5db;padding:0 10px">|</span>');
+
+  // ── Metadata rows — same key/value pattern as docs auto-generated section ──
+  function metaKV(label, value){
+    return '<div style="display:flex;gap:0;padding:11px 20px;border-bottom:1px solid #f3f4f6">'
+      +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;min-width:150px;flex-shrink:0;padding-top:2px">'+label+'</span>'
+      +'<span style="font-size:13.5px;color:#111827">'+value+'</span>'
+      +'</div>';
+  }
+
+  // Tab style — green underline active, same as other panel tabs
+  const T ='padding:11px 0;margin-right:22px;font-size:14px;cursor:pointer;border:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;background:none;font-family:var(--sans);font-weight:500;color:#374151;white-space:nowrap;transition:all .12s';
+  const TA='padding:11px 0;margin-right:22px;font-size:14px;cursor:pointer;border:none;border-bottom:2.5px solid #009982;margin-bottom:-1px;background:none;font-family:var(--sans);font-weight:600;color:#111827;white-space:nowrap;transition:all .12s';
+
+  const body=document.getElementById('prev-body');
+  if(!body) return;
+
+  body.innerHTML='<div class="panel-fade" style="display:flex;flex-direction:column;gap:0">'
+
+    // ── Metric tiles ──
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">'
+    +'<div class="metric-tile metric-tile-green"><div class="metric-tile-val">'+totalCols+'</div><div class="metric-tile-label">Columns</div><div class="metric-tile-sub">'+s.cols.length+' types</div></div>'
+    +'<div class="metric-tile" style="background:'+lcBg+';border:1px solid '+lcBorder+'"><div class="metric-tile-val" style="color:'+lcColor+';font-size:16px;font-weight:700;margin-bottom:6px">'+(isCert?'&#10003; Certified':'Under Review')+'</div><div class="metric-tile-label" style="color:'+lcColor+'">Lifecycle status</div></div>'
+    +'<div class="metric-tile" style="background:'+(s.confidence==='high'?'#f0fdf4':'#fffbeb')+';border:1px solid '+(s.confidence==='high'?'#bbf7d0':'#fde68a')+'"><div class="metric-tile-val" style="color:'+confColor+';font-size:16px;font-weight:700;margin-bottom:6px">'+(s.confidence==='high'?'High':'Medium')+'</div><div class="metric-tile-label" style="color:'+confColor+'">Confidence</div><div class="metric-tile-sub">'+s.owner+'</div></div>'
+    +'</div>'
+
+    // ── Tab bar inside a white card ──
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px 14px 0 0;border-bottom:none;overflow:hidden">'
+    +'<div style="display:flex;border-bottom:1px solid #e9ecef;padding:0 20px">'
+    +'<button id="src-tab-overview" onclick="srcSwitchTab(\'overview\')" style="'+TA+'">Overview</button>'
+    +'<button id="src-tab-cols"     onclick="srcSwitchTab(\'cols\')"     style="'+T+'">Columns ('+totalCols+')</button>'
+    +'<button id="src-tab-related"  onclick="srcSwitchTab(\'related\')"  style="'+T+'">Related assets ('+s.related.length+')</button>'
+    +'<button id="src-tab-glossary" onclick="srcSwitchTab(\'glossary\')" style="'+T+'">Glossary ('+s.glossary.length+')</button>'
+    +'<button id="src-tab-graph"    onclick="srcSwitchTab(\'graph\')"    style="'+T+'">Graph explorer</button>'
+    +'</div>'
+
+    // ── Content area ──
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-top:none;border-radius:0 0 14px 14px">'
+
+    // Overview
+    +'<div id="src-content-overview" style="padding:20px">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:6px">Description</div>'
+    +'<div style="font-size:14px;color:#111827;line-height:1.65;margin-bottom:20px">'+s.desc+'</div>'
+    +'<hr style="border:none;border-top:1px solid #e9ecef;margin-bottom:18px">'
+    +'<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px"><span style="font-size:13.5px;font-weight:600;color:#111827">Columns ('+totalCols+')</span><button onclick="srcSwitchTab(\'cols\')" style="font-size:12.5px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:var(--sans);padding:0">View all</button></div>'
+    +colsHtml
+    +'<hr style="border:none;border-top:1px solid #e9ecef;margin:18px 0">'
+    +'<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px"><span style="font-size:13.5px;font-weight:600;color:#111827">Related assets ('+s.related.length+')</span><button onclick="srcSwitchTab(\'related\')" style="font-size:12.5px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:var(--sans);padding:0">View all</button></div>'
+    +relHtml
+    +'<hr style="border:none;border-top:1px solid #e9ecef;margin:18px 0">'
+    +'<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px"><span style="font-size:13.5px;font-weight:600;color:#111827">Related glossary terms ('+s.glossary.length+')</span><button onclick="srcSwitchTab(\'glossary\')" style="font-size:12.5px;color:#2563eb;background:none;border:none;cursor:pointer;font-family:var(--sans);padding:0">View all</button></div>'
+    +'<div>'+glossHtml+'</div>'
+    +'<hr style="border:none;border-top:1px solid #e9ecef;margin:18px 0">'
+    +'</div>'
+
+    // Columns
+    +'<div id="src-content-cols" style="display:none;padding:20px">'
+    +'<div style="font-size:13.5px;font-weight:600;color:#111827;margin-bottom:14px">All columns ('+totalCols+')</div>'
+    +colsHtml
+    +'</div>'
+
+    // Related
+    +'<div id="src-content-related" style="display:none;padding:20px">'
+    +'<div style="font-size:13.5px;font-weight:600;color:#111827;margin-bottom:14px">Related assets ('+s.related.length+')</div>'
+    +relHtml
+    +'</div>'
+
+    // Glossary
+    +'<div id="src-content-glossary" style="display:none;padding:20px">'
+    +'<div style="font-size:13.5px;font-weight:600;color:#111827;margin-bottom:14px">Related glossary terms</div>'
+    +glossHtml
+    +'</div>'
+
+    // Graph
+    +'<div id="src-content-graph" style="display:none;padding:20px">'
+    +'<div style="font-size:13.5px;font-weight:600;color:#111827;margin-bottom:12px">Graph Explorer</div>'
+    +'<div style="display:flex;gap:24px;border-bottom:1px solid #e9ecef">'
+    +'<span style="font-size:13.5px;color:#2563eb;border-bottom:2px solid #2563eb;padding-bottom:9px;cursor:pointer">Relationships view</span>'
+    +'<span style="font-size:13.5px;color:#374151;padding-bottom:9px;cursor:pointer">Lineage view</span>'
+    +'</div>'
+    +'<div style="background:#f9fafb;border:1px solid #e9ecef;border-top:none;border-radius:0 0 8px 8px;height:200px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px">Graph visualization</div>'
+    +'</div>'
+    +'</div></div>'
+
+    // ── Governance & metadata — same panel-section style as other steps ──
+    +'<div style="background:#fff;border:1px solid #e9ecef;border-radius:14px;overflow:hidden;margin-top:12px">'
+    +'<div style="padding:14px 20px 10px;border-bottom:1px solid #f3f4f6">'
+    +'<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af">Governance &amp; metadata</span>'
+    +'</div>'
+    +'<div style="padding:0">'
+    +metaKV('Owner', s.owner)
+    +metaKV('Steward', s.steward)
+    +metaKV('Domain', s.domain)
+    +metaKV('Lifecycle', '<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+lcBg+';color:'+lcColor+';border:1px solid '+lcBorder+'">'+(isCert?'&#10003; ':'')+lcLabel+'</span>')
+    +metaKV('Status message', s.statusMsg)
+    +metaKV('Original name', '<span style="font-family:var(--mono);font-size:13px;color:#374151">'+s.originalName+'</span>')
+    +metaKV('Metadata by', s.metaBy)
+    +'</div></div>'
+
+    // ── Why AI selected this ──
+    +'<div style="background:#f9fafb;border:1px solid #e9ecef;border-radius:12px;padding:14px 20px;margin-top:12px">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:7px">Why AI selected this</div>'
+    +'<div style="font-size:13px;color:#374151;line-height:1.6">'+s.confReason+'</div>'
+    +'</div>'
+
+    +'</div>';
+
+  const pf=document.getElementById('pf-status');
+  if(pf) pf.textContent='Viewing: '+s.name;
+}
+// Tab switching within source detail
+function srcSwitchTab(id){
+  ['overview','cols','related','glossary','graph'].forEach(function(t){
+    const c=document.getElementById('src-content-'+t);
+    const btn=document.getElementById('src-tab-'+t);
+    if(c) c.style.display=t===id?'':'none';
+    if(btn){
+      btn.style.borderBottomColor=t===id?'#009982':'transparent';
+      btn.style.color=t===id?'#111827':'#374151';
+      btn.style.fontWeight=t===id?'600':'500';
+    }
+  });
+}
+
+function closeSrc(){ closePreview(); }
+
+// -----------------------------------------
+// CHAT HELPERS
+// -----------------------------------------
+function thread(){return document.getElementById('thread');}
+let _userScrolledUp = false;
+function _initScrollTracker(){
+  const w=document.getElementById('thread-wrap');
+  if(!w) return;
+  w.addEventListener('scroll',function(){
+    _userScrolledUp = (w.scrollHeight - w.scrollTop - w.clientHeight) > 0;
+  },{passive:true});
+}
+function scrollDown(){
+  const w=document.getElementById('thread-wrap');
+  if(!w) return;
+  if(!_userScrolledUp) w.scrollTop=w.scrollHeight;
+}
+function forceScrollDown(){
+  const w=document.getElementById('thread-wrap');
+  if(!w) return;
+  _userScrolledUp=false;
+  w.scrollTop=w.scrollHeight;
+}
+
+function note(action){
+  const e=document.createElement('div');e.className='sys-note';e.textContent='✏ '+action;
+  thread().appendChild(e);scrollDown();
+}
+
+function addUser(text){
+  const e=document.createElement('div');e.className='msg-user';
+  e.innerHTML=`<div class="bbl-user">${esc(text)}</div>`;
+  thread().appendChild(e);scrollDown();
+}
+
+var _arrowSVG='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 13V3M8 3L3.5 7.5M8 3L12.5 7.5" stroke="#4a6880" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var _stopSVG='<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5" fill="#4a6880"/></svg>';
+function setSendStop(on){
+  var btn=document.getElementById('send');
+  if(!btn) return;
+  if(on){ btn.classList.add('stop'); btn.innerHTML=_stopSVG; btn.onclick=function(){stopGeneration();}; }
+  else  { btn.classList.remove('stop'); btn.innerHTML=_arrowSVG; btn.onclick=function(){doSend();}; }
+}
+
+var _stopRequested=false;
+function stopGeneration(){
+  _stopRequested=true;
+  busy=false;
+  rmTyping();
+  setSendStop(false);
+}
+
+function showTyping(){
+  if(document.getElementById('_t')) return;
+  const e=document.createElement('div');e.className='msg-ai';e.id='_t';
+  e.innerHTML='<div class="ai-ico"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 1L11.5 6.5L17 9L11.5 11.5L9 17L6.5 11.5L1 9L6.5 6.5L9 1Z" fill="url(#g1)" stroke="none"/><defs><linearGradient id="g1" x1="1" y1="1" x2="17" y2="17" gradientUnits="userSpaceOnUse"><stop stop-color="#34d399"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs></svg></div><div class="bbl-ai"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  thread().appendChild(e);scrollDown();
+}
+function rmTyping(){const e=document.getElementById('_t');if(e)e.remove();}
+
+// Streaming word-by-word render -- onDone fires when streaming completes
+function addAI(text, onDone){
+  const row=document.createElement('div');row.className='msg-ai';
+  const ico=document.createElement('div');ico.className='ai-ico';ico.innerHTML='<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 1L11.5 6.5L17 9L11.5 11.5L9 17L6.5 11.5L1 9L6.5 6.5L9 1Z" fill="url(#g1)" stroke="none"/><defs><linearGradient id="g1" x1="1" y1="1" x2="17" y2="17" gradientUnits="userSpaceOnUse"><stop stop-color="#34d399"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs></svg>';
+  const bbl=document.createElement('div');bbl.className='bbl-ai';
+  const cur=document.createElement('span');cur.className='cur';
+  bbl.appendChild(cur);row.appendChild(ico);row.appendChild(bbl);
+  thread().appendChild(row);scrollDown();
+
+  const segs=parseSegs(text);
+  let si=0,ci=0;
+  const SPD=9;
+
+  function tick(){
+    if(si>=segs.length){
+      cur.remove();scrollDown();
+      if(onDone) onDone();
+      return;
+    }
+    const seg=segs[si];
+    if(seg.type==='para'){
+      // Paragraph break — a small spacer div gives breathing room without double-br gap
+      const sp=document.createElement('div');
+      sp.style.cssText='height:6px;display:block';
+      bbl.insertBefore(sp,cur);
+      si++;ci=0;setTimeout(tick,18);return;
+    }
+    if(seg.type==='br'){
+      bbl.insertBefore(document.createElement('br'),cur);
+      si++;ci=0;setTimeout(tick,18);return;
+    }
+    if(!seg._n){
+      if(seg.type==='bold'){seg._n=document.createElement('strong');}
+      else if(seg.type==='code'){seg._n=document.createElement('span');seg._n.className='cd';}
+      else{seg._n=document.createTextNode('');}
+      bbl.insertBefore(seg._n,cur);
+    }
+    if(ci<seg.text.length){
+      seg._n.textContent+=seg.text[ci++];
+      scrollDown();
+      setTimeout(tick,SPD);
+    } else {si++;ci=0;setTimeout(tick,SPD);}
+  }
+  setTimeout(tick,50);
+}
+
+function parseSegs(text){
+  // Convert -- to em dash, normalise fancy dashes
+  text = text.replace(/ -- /g,'—').replace(/--/g,'—').replace(/–/g,'—');
+  const segs=[];
+  // Split on double newline (paragraph), bold, code, single newline
+  // Strip markdown headings (# ## ###) — just treat content as bold text
+  text = text.replace(/^#{1,3}\s+/gm, '');
+  const parts=text.split(/(\n\n|\*\*.*?\*\*|`[^`]+`|\n)/g);
+  for(const p of parts){
+    if(!p) continue;
+    if(p==='\n\n') segs.push({type:'para'});
+    else if(p==='\n') segs.push({type:'br'});
+    else if(p.startsWith('**')&&p.endsWith('**')) segs.push({type:'bold',text:p.slice(2,-2)});
+    else if(p.startsWith('`')&&p.endsWith('`')) segs.push({type:'code',text:p.slice(1,-1)});
+    else segs.push({type:'text',text:p});
+  }
+  return segs;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// -----------------------------------------
+// INLINE CARDS
+// Step 1 card: fires when advance signal detected (plan confirmed)
+// Steps 2-7 cards: fire from autoIntro when step opens
+// -----------------------------------------
+const CARD_DEF = {
+  plan:{
+    title:'AI-Generated Plan',
+    meta:'Shipment billing reconciliation · Data Interface · Left outer join',
+    tags:[{label:'✓ Plan ready',cls:'itag-green'}],
+    btnLabel:'Review plan →', tab:'plan'
+  },
+  sources:{
+    title:'3 sources found in catalog',
+    meta:'orders_snowflake · billing_transactions · customer_db',
+    tags:[{label:'2 Certified',cls:'itag-green'},{label:'1 Under Review',cls:'itag-amber'}],
+    btnLabel:'Inspect sources →', tab:'sources'
+  },
+  ticket:{
+    title:'Governance ticket created',
+    meta:'DGR-2847 · Assigned to Priya Mehta · Awaiting response',
+    tags:[{label:'● Awaiting response',cls:'itag-amber'}],
+    btnLabel:'View ticket →', tab:'ticket'
+  },
+  schema:{
+    title:'Schema mapped · 1 flag to review',
+    tags:[{label:'⚠ invoice_status flag',cls:'itag-amber'},{label:'8 fields mapped',cls:'itag-blue'}],
+    btnLabel:'Review schema →', tab:'schema'
+  },
+  verify:{
+    title:'Connection verification complete',
+    tags:[{label:'2 Verified',cls:'itag-green'},{label:'1 Timeout',cls:'itag-amber'}],
+    btnLabel:'Review results →', tab:'verify'
+  },
+  access:{
+    title:'Access configured',
+    tags:[{label:'2 Auto-configured',cls:'itag-green'},{label:'1 Manual request needed',cls:'itag-amber'}],
+    btnLabel:'Review access →', tab:'access'
+  },
+  docs:{
+    title:'Documentation draft ready',
+    tags:[{label:'91% complete',cls:'itag-blue'}],
+    btnLabel:'Review documentation →', tab:'docs'
+  },
+  review:{
+    title:'Ready to create draft',
+    tags:[{label:'All steps complete',cls:'itag-green'}],
+    btnLabel:'Final review →', tab:'review'
+  }
+};
+
+function showCard(cardId){
+  if(cardShown[cardId]) return;
+  cardShown[cardId]=true;
+  const def=CARD_DEF[cardId]; if(!def) return;
+
+  setTimeout(()=>{
+    const e=document.createElement('div');e.className='icard';
+    const tags=def.tags.map(t=>`<span class="itag ${t.cls}">${t.label}</span>`).join('');
+    e.innerHTML=`<div class="icard-title">${def.title}</div>${def.meta?`<div class="icard-meta">${def.meta}</div>`:''}
+      <div class="icard-tags">${tags}</div>
+      <button class="prev-btn" onclick="openPanel('${def.tab}')">${def.btnLabel}</button>`;
+    thread().appendChild(e);
+    _userScrolledUp=false; const _cw=document.getElementById('thread-wrap'); if(_cw) _cw.scrollTop=_cw.scrollHeight;
+    // Panel opens only when user clicks the button — not automatically
+  },600);
+}
+
+// -----------------------------------------
+// INLINE SOURCE CARDS -- appear in chat thread at step 2
+// -----------------------------------------
+function showInlineSources(){
+  if(cardShown['sources-inline']) return;
+  cardShown['sources-inline']=true;
+  setTimeout(()=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:8px;animation:in .2s ease';
+
+    // Summary banner
+    const banner=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:9px 13px;font-size:12px;color:#15803d;font-weight:500;margin-bottom:2px">
+      ✦ Searched 47 sources across 6 systems -- recommending 3 based on coverage, certification, and join quality
+    </div>`;
+
+    // Selected sources
+    const srcCards=Object.values(SOURCES).map(s=>{
+      const confColor=s.confidence==='high'?'#22c55e':s.confidence==='medium'?'#f59e0b':'#ef4444';
+      const confLabel=s.confidence==='high'?'High confidence':s.confidence==='medium'?'Medium confidence':'Low confidence';
+      const cert=s.certified
+        ?`<span class="itag itag-green" style="font-size:10px">✓ Certified</span>`
+        :`<span class="itag itag-amber" style="font-size:10px">Under Review</span>`;
+      return `<div style="background:#fff;border:1px solid var(--border);border-left:3px solid ${confColor};border-radius:10px;padding:11px 13px;box-shadow:var(--shadow);display:flex;align-items:flex-start;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${s.system==='Snowflake'?'❄':s.system==='ServiceNow'?'✦':'⊞'} ${s.name} ${cert}
+            <span style="font-size:10px;font-weight:600;color:${confColor}">${confLabel}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--muted2);line-height:1.5;margin-bottom:5px">${s.confReason}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface3);color:var(--muted2);font-weight:500">${s.system}</span>
+            <span style="font-size:10px;padding:2px 7px;border-radius:20px;background:var(--surface3);color:var(--muted2);font-weight:500">${s.domain}</span>
+          </div>
+        </div>
+        <button onclick="openSrc('${s.name}')" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:5px 11px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--sans);white-space:nowrap" onmouseover="this.style.borderColor='var(--teal-dk)';this.style.color='var(--teal-dk)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">View details →</button>
+      </div>`;
+    }).join('');
+
+    // Rejected sources toggle
+    const rejected=REJECTED_SOURCES.slice(0,8);
+    const rejectedHtml=`<div style="margin-top:4px">
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none';this.textContent=this.textContent.includes('Show')?'Hide filtered results ↑':'Show 44 filtered results ↓'" style="background:none;border:none;font-size:11.5px;color:var(--muted2);cursor:pointer;font-family:var(--sans);padding:4px 0;text-decoration:underline">Show 44 filtered results ↓</button>
+      <div style="display:none;flex-direction:column;gap:5px;margin-top:7px">
+        ${rejected.map(r=>{
+          const lc=r.lifecycle==='Certified'?'#15803d':r.lifecycle==='Deprecated'?'#b91c1c':r.lifecycle==='Restricted'?'#7c3aed':'#92400e';
+          const lb=r.lifecycle==='Certified'?'#dcfce7':r.lifecycle==='Deprecated'?'#fee2e2':r.lifecycle==='Restricted'?'#ede9fe':'#fef3c7';
+          return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:600;color:var(--text2);font-family:var(--mono)">${r.name}</span>
+                <span style="font-size:9.5px;font-weight:600;padding:1px 6px;border-radius:20px;background:${lb};color:${lc}">${r.lifecycle}</span>
+                <span style="font-size:10px;color:var(--muted2)">${r.system} · ${r.domain}</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted2);line-height:1.5">${r.reason_rejected}</div>
+            </div>
+          </div>`;
+        }).join('')}
+        <div style="font-size:11px;color:var(--muted2);font-style:italic;padding:4px 0">…and 36 more filtered results available in the full catalog search.</div>
+      </div>
+    </div>`;
+
+    wrap.innerHTML=banner+srcCards+rejectedHtml;
+    thread().appendChild(wrap);
+    _userScrolledUp=false; const _iw=document.getElementById('thread-wrap'); if(_iw) _iw.scrollTop=_iw.scrollHeight;
+  },700);
+}
+
+// -----------------------------------------
+// API CALLS
+// -----------------------------------------
+async function doSend(){
+  const inp=document.getElementById('na-inp');
+  const val=inp.value.trim();
+  if(!val||busy) return;
+  inp.value='';inp.style.height='auto';
+  busy=true;_stopRequested=false;setSendStop(true);addUser(val);msgs.push({role:'user',content:val});showTyping();
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MDL,max_tokens:700,system:STEPS[step].sys,messages:msgs})});
+    const d=await r.json();rmTyping();
+    const reply=d.error?'Something went wrong -- please try again.':d.content.map(b=>b.text||'').join('');
+    msgs.push({role:'assistant',content:reply});
+
+    // Check for step advance before streaming
+    const willAdvance = step<4 && STEPS[step].advance && STEPS[step].advance.test(reply);
+    const isSessionEnd = step===4 && /SESSION_COMPLETE/i.test(reply);
+    const isTicket = /TICKET_CREATED/i.test(reply);
+
+    // Invoice resolution: only fires when user has actually made a decision.
+    // Three valid paths:
+    // 1. User said same/equivalent/both mean not billed/option 1 AND AI confirmed the rule
+    // 2. Ticket was created (handled separately via TICKET_CREATED path)
+    // 3. After time-skip return, user confirmed Priya's answer
+    // Detection: AI must have locked in a specific rule (not just acknowledged or asked a question)
+    const isInvoiceResolution = step===3 && !schemaState.invoiceResolved && !isTicket && (
+      // Matches the exact phrase we instruct the AI to use, plus natural variants
+      /both null and .n.?a. will be treated|null and .n.?a. will be treated|rule.*applied.*any row|applying.*null.*n.?a|both.*treated.*not billed|both.*flagged.*unbilled|decision is documented|locked.*in.*null.*n.?a|n.?a.*will be treated|treated as not billed/i.test(reply)
+    );
+
+    // Strip internal signals from displayed text
+    const displayReply = isTicket
+      ? reply.replace(/TICKET_CREATED\s*--?\s*/i,'').trim()
+      : isSessionEnd
+        ? reply.replace(/SESSION_COMPLETE/i,'').trim()
+        : reply;
+
+    function extractInvoiceDecision(r){
+      if(/both.*not billed|n.?a.*legacy|same.*meaning|treat.*equivalent|same.*null|null.*same/i.test(r))
+        return 'Safe assumption: null + N/A = not billed';
+      if(/keep.*separate|different.*meaning|exempt|intentional/i.test(r))
+        return 'Distinct: N/A treated separately';
+      return 'Safe assumption: null + N/A = not billed';
+    }
+
+    const isPlanPresented = step===1 && !cardShown['plan'] &&
+      /\*\*goal:\*\*|\*\*i recommend:\*\*|\*\*app scope:\*\*|goal:|i recommend:|app scope:/i.test(reply);
+
+    addAI(displayReply, ()=>{
+      busy=false;
+      setSendStop(false);
+      inp.focus();
+      if(isTicket){
+        setTimeout(()=>showTimeSkip(), 800);
+        return;
+      }
+      if(isPlanPresented) showCard('plan');
+      // Resolve invoice status FIRST, then advance — so panel updates before step transition
+      if(isInvoiceResolution){
+        resolveInvoiceStatus(extractInvoiceDecision(reply));
+      }
+      if(willAdvance){
+        // Small delay so user sees the panel update before step advances
+        setTimeout(()=>{ step++;msgs=[]; autoIntro(step); }, isInvoiceResolution ? 1800 : 900);
+      }
+      if(isSessionEnd){
+        setTimeout(()=>showSessionEnd(), 900);
+      }
+    });
+  }catch(e){
+    rmTyping();
+    addAI('Connection error -- check your internet and try again.', ()=>{ busy=false; setSendStop(false); inp.focus(); });
+  }
+}
+
+async function autoIntro(s){
+  if(busy) return;
+  // When entering step 2 (sources), inject the step strip inline in chat
+  if(s===2) _injectStepStrip(1);
+  busy=true;_stopRequested=false;setSendStop(true);showTyping();
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MDL,max_tokens:600,system:STEPS[s].sys,
+        messages:[{role:'user',content:'begin'}]})});
+    const d=await r.json();rmTyping();
+    const reply=d.error?'':d.content.map(b=>b.text||'').join('');
+    if(reply){
+      msgs.push({role:'user',content:'begin'});
+      msgs.push({role:'assistant',content:reply});
+      addAI(reply, ()=>{
+        busy=false;
+        setSendStop(false);
+        // Step 2: show inline source cards in chat
+        if(s===2) showInlineSources();
+        // Steps 3-7: show summary card
+        else {
+          const STEP_CARD={3:'schema',4:'verify',5:'access',6:'docs',7:'review'};
+          const cardId=STEP_CARD[s];
+          if(cardId) showCard(cardId);
+        }
+      });
+    } else {
+      busy=false;
+      setSendStop(false);
+    }
+  }catch(e){rmTyping();busy=false;setSendStop(false);}
+}
+
+// -----------------------------------------
+// TIME-SKIP UI -- simulates ticket resolution for user testing
+// -----------------------------------------
+function showTimeSkip(){
+  const t = thread();
+
+  // Ticket confirmation card
+  const ticketCard = document.createElement('div');
+  ticketCard.style.cssText='animation:in .2s ease';
+  ticketCard.innerHTML=`
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)">
+      <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:5px">🎫 Ticket created -- INC0042817</div>
+      <div style="font-size:11.5px;color:#92400e;margin-bottom:8px;line-height:1.5">
+        <strong>Title:</strong> Define invoice_status null vs N/A -- Shipment billing reconciliation<br>
+        <strong>Assigned to:</strong> Priya Mehta (billing_transactions steward)<br>
+        <strong>Priority:</strong> Medium · <strong>Status:</strong> Open
+      </div>
+      <div style="font-size:11px;color:var(--muted2)">Your progress is saved. The interface will resume once this is resolved.</div>
+    </div>`;
+  t.appendChild(ticketCard);
+  scrollDown();
+
+  // Time-skip banner -- appears after a short delay
+  setTimeout(()=>{
+    const skip = document.createElement('div');
+    skip.style.cssText='margin:8px 0;animation:in .25s ease';
+    skip.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--teal-dk)">
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">⏩ Simulated time skip -- 2 days later</div>
+          <div style="font-size:12.5px;color:var(--text2)">Priya Mehta responded to INC0042817: <strong style="color:var(--text)">"Both null and N/A mean not billed -- N/A is a legacy value from the old billing system before we standardized."</strong></div>
+        </div>
+        <button onclick="resolveTicket(this)" style="flex-shrink:0;background:linear-gradient(135deg,var(--teal-dk),var(--teal));color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;white-space:nowrap">Resume →</button>
+      </div>`;
+    t.appendChild(skip);
+    scrollDown();
+  }, 1000);
+}
+
+function resolveTicket(btn){
+  // Disable the button
+  btn.textContent='✓ Resumed';
+  btn.style.background='#16a34a';
+  btn.disabled=true;
+
+  // Resolve schema state from ticket answer
+  resolveInvoiceStatus('Safe assumption: null + N/A = not billed (confirmed by Priya Mehta)');
+
+  // AI picks up with the resolution
+  setTimeout(()=>{
+    addAI('Welcome back. Priya confirmed that both null and N/A mean the same thing -- not billed. N/A is just a legacy value from the old billing system.\n\nI\'ve applied that mapping now and documented the business definition in the interface metadata. Both values will be treated as missing invoice and flagged as unbilled shipments.\n\nThe plan is ready to approve.', ()=>{
+      busy=false;
+      // Now advance to verification
+      setTimeout(()=>{ step++;msgs=[]; autoIntro(step); }, 900);
+    });
+  }, 600);
+}
+
+function switchSchemaTab(tab){
+  ['all','attn','meta','syn'].forEach(function(t){
+    var rows=document.getElementById('schema-rows-'+t);
+    var btn=document.getElementById('schema-tab-'+t);
+    if(rows) rows.style.display=t===tab?'flex':'none';
+    if(btn){
+      var isActive=t===tab;
+      btn.style.color=isActive?'#111827':'#374151';
+      btn.style.fontWeight=isActive?'600':'500';
+      btn.style.borderBottomColor=isActive?'#009982':'transparent';
+    }
+  });
+}
+
+function refreshSchemaPanel(){
+  // Always update schema state in panel body regardless of current phase
+  var body = document.getElementById('prev-body');
+  if(!body) return;
+  // If schema panel isn't open, open it so user sees the update
+  if(currentPhase !== 'schema'){
+    openPanel('schema');
+  } else {
+    body.innerHTML = '<div class="panel-fade">' + renderSchema() + '</div>';
+  }
+}
+
+function resolveInvoiceStatus(decision){
+  schemaState.invoiceResolved = true;
+  schemaState.invoiceTx = decision || 'Safe assumption: null + N/A = not billed';
+  // Force re-render the panel immediately regardless of current phase
+  var body = document.getElementById('prev-body');
+  if(body){
+    body.innerHTML = '<div class="panel-fade">' + renderSchema() + '</div>';
+    body.scrollTop = 0;
+  }
+  // Update footer label to reflect resolved state
+  var pf = document.getElementById('pf-status');
+  if(pf) pf.textContent = '✓ invoice_status resolved — schema ready to continue';
+  // Open panel if it wasn't already showing
+  if(currentPhase !== 'schema'){
+    openPanel('schema');
+  }
+}
+
+function resolveCustomerName(){
+  schemaState.customerResolved = true;
+  // Refresh if schema is open
+  if(currentPhase === 'schema'){
+    var body = document.getElementById('prev-body');
+    if(body) body.innerHTML = '<div class="panel-fade">' + renderSchema() + '</div>';
+  }
+}
+
+function toggleSchemaDetail(id){
+  const det=document.getElementById('det-'+id);
+  const chev=document.getElementById('chev-'+id);
+  if(!det) return;
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  if(chev) chev.textContent=open?'⌃':'›';
+}
+
+function doReset(){
+  msgs=[];busy=false;step=1;splitOpen=false;
+  activeTab='';unlockedTabs=[];cardShown={};
+  phaseHistory=[];currentPhase=null;
+  schemaState = { invoiceResolved:false, invoiceTx:'', customerResolved:false };
+  verifyState = { customerDbRetried:false, customerDbSkipped:false, customerDbRemoved:false };
+  document.getElementById('thread').innerHTML='';
+  document.getElementById('shell').classList.remove('split');
+  document.getElementById('prev-body').innerHTML='';
+  document.getElementById('pf-status').textContent='';
+  document.getElementById('phase-label').textContent='';
+  const back=document.getElementById('phase-back');if(back)back.className='phase-back';
+  const sep=document.getElementById('phase-sep');if(sep)sep.style.display='none';
+  const st=document.getElementById('ph-status');
+  if(st){st.textContent='● In progress';st.className='ph-status st-progress';}
+  const btn=document.getElementById('draft-btn');
+  if(btn){btn.textContent='Create draft';btn.style.background='';btn.disabled=false;}
+  // Hide session end modal if showing
+  const se=document.getElementById('session-end');
+  if(se) se.style.display='none';
+  setTimeout(welcome,100);
+}
+
+
+function welcome(){
+  _initScrollTracker();
+  busy=true;
+  addAI('Hi, I\'m Now Assist. I can help you get answers from your data.\n\n**What business problem are you trying to solve?** Describe it in plain language -- I\'ll figure out what to build and where to find the data.', ()=>{ busy=false; setSendStop(false); });
+}
+
+function startSession(){
+  // Intro handled by GQ -- go straight in
+  const intro = document.getElementById('intro');
+  if(intro) intro.style.display='none';
+  setTimeout(()=>document.getElementById('na-inp').focus(),200);
+}
+
+function showSessionEnd(){
+  document.getElementById('session-end').style.display='flex';
+}
+
+// -----------------------------------------
+// INIT
+// -----------------------------------------
+welcome();
+</script>
+
+<!-- SESSION END MODAL -->
+<div id="session-end" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.25);max-width:480px;width:100%;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#1a2332,#0f3d35);padding:24px 28px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:6px">Research session complete</div>
+      <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">That's the end of this prototype</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5)">Billing Reconciliation · Intent, sources, schema, verification</div>
+    </div>
+    <div style="padding:24px 28px;display:flex;flex-direction:column;gap:14px">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 15px">
+        <div style="font-size:13px;font-weight:600;color:#15803d;margin-bottom:4px">What you just completed</div>
+        <div style="font-size:12.5px;color:#15803d;line-height:1.6">Intent and plan confirmation → Source discovery (47 sources, 3 recommended) → Schema mapping and the invoice_status decision → Connection verification</div>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 15px">
+        <div style="font-size:13px;font-weight:600;color:#92400e;margin-bottom:4px">What happens next in a real workflow</div>
+        <div style="font-size:12.5px;color:#92400e;line-height:1.6">Access configuration, documentation, and publishing — but those steps aren't what we're exploring in this session.</div>
+      </div>
+      <div style="font-size:13px;color:#374151;line-height:1.6;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:12px 15px">
+        <strong>Next step:</strong> Please return to the survey tab in your browser and answer the questions while this experience is still fresh. Your responses help us improve the AI behavior.
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="doReset()" style="flex:1;padding:11px;background:transparent;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13.5px;font-weight:600;font-family:'Inter',sans-serif;color:#374151;cursor:pointer">&#8635; Start over</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
